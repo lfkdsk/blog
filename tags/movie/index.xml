@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Movie on lfkdsk's Blog</title><link>https://blog.lfkdsk.org/tags/movie/</link><description>Recent content in Movie on lfkdsk's Blog</description><generator>Hugo</generator><language>cn</language><lastBuildDate>Thu, 17 Aug 2023 17:16:44 +0800</lastBuildDate><atom:link href="https://blog.lfkdsk.org/tags/movie/index.xml" rel="self" type="application/rss+xml"/><item><title>封神闲谈：也谈封神之中的历史影射</title><link>https://blog.lfkdsk.org/talk-about-fengshen/</link><pubDate>Thu, 17 Aug 2023 17:16:44 +0800</pubDate><guid>https://blog.lfkdsk.org/talk-about-fengshen/</guid><description>&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js">&lt;/script>
+&lt;script src="https://blog.lfkdsk.org/js/decrypt.js">&lt;/script>
+
+&lt;style>
+ .hugo-encryptor-container {
+ margin: 1rem 0;
+ padding: 1rem;
+ border: 2px dashed #41403e;
+ border-radius: 8px;
+ background: #fafafa;
+ }
+ .hugo-encryptor-form {
+ display: flex;
+ gap: .5rem;
+ align-items: center;
+ flex-wrap: wrap;
+ }
+ .hugo-encryptor-input {
+ flex: 1 1 200px;
+ min-width: 160px;
+ border: 2px solid #41403e !important;
+ background: #fff !important;
+ border-radius: 4px;
+ padding: .5rem;
+ font-size: 1rem;
+ }
+ .hugo-encryptor-button {
+ border: 2px solid #41403e !important;
+ background: #41403e !important;
+ color: #fff !important;
+ border-radius: 4px;
+ padding: .5rem 1rem;
+ cursor: pointer;
+ font-size: 1rem;
+ }
+ .hugo-encryptor-button:hover {
+ background: #000 !important;
+ }
+&lt;/style>
+
+&lt;div class="hugo-encryptor-container">
+ &lt;div class="hugo-encryptor-prompt">
+ 
+ &lt;p>文章的部分内容被密码保护：&lt;/p></description></item></channel></rss>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="Hugo 0.140.2" name="generator"/><meta content="IE=edge" http-equiv="X-UA-Compatible"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="Intra-Mind Traveler" name="author"/><meta content="https://blog.lfkdsk.org/tidb-hackthon/" property="og:url"/><link href="https://blog.lfkdsk.org/tidb-hackthon/" rel="canonical"/><link href="./img/favicon.ico" rel="apple-touch-icon"/><link href="./img/favicon.ico" rel="icon"/><link href="./img/favicon.ico" rel="shortcut"/><script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/blog.lfkdsk.org\/"},"articleSection":"","name":"Ti-Alloy：一次 TiDB Hackathon 摸鱼","headline":"Ti-Alloy：一次 TiDB Hackathon 摸鱼","description":"\u003cp\u003e上个周末又是一次 PingCap 举办的 TiDB Hackathon，上一次某个拿了一等奖的老哥又拉我参赛。日常的对整个系统了解程度一般没什么预先准备，key-point 也不是特别出彩的东西，因此也难免 Hackathon 陪跑、Prize Skip （笑死🤣）。不过参加 Hackathon 本身就是件比较有意思的事情，因为在有限的时间内找出 key-point、对复杂的代码进行分析理解找出实现方案、写代码完成功能、做 Slide 给大家吹水，其实都是比较锻炼能力的。\u003c\/p\u003e\n\u003cp\u003e在国内面试很多面试官都会对某些流行框架代码的实现方案有所要求，但是其实这方面固然重要但是只要你去看很少能有你看不懂的东西。从个人而言，可能会更看重快速了解一份陌生代码、陌生系统的设计逻辑，找出症结、获得经验方面的能力。所以可能推荐大家可以多摸摸 Hackathon 方面的鱼，还是有很多增长的。\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003e这次由于上周一直在感冒发烧，所以这次的 Hackathon 全程是在家云的，而且由于 key-point 比较小，代码写起来也很快，因此娱乐休息在家一个没落下，感冒发烧还好了，比较开心。\u003c\/p\u003e\n\u003cp\u003e“这也能云☁️？？”\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003e这次做出的最后的结果，其实是一个 TiDB 上比较容易的拓展方案集（包括换 UDF 支持、给 TiDB 换 Store Engine、DSL 支持）。其实开始做的时候打算的内容还挺多的，不过时间太短也没都做完就选了几个点来完成了，这里简单做下记录。\u003c\/p\u003e\n\u003cp\u003e（最后看了很多 dalao 的开发演示，深感在做 db 和分布式方面的能力还是有待加强，很多方案真的挺惊艳的）。\u003c\/p\u003e\n\u003cblockquote\u003e\n\u003cp\u003e本文目录\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cul\u003e\n\u003cli\u003e[User Defined Function 支持](##User Defined Function 支持)\u003c\/li\u003e\n\u003cli\u003e[Ti-Alloy Engine 替换](##Ti-Alloy Engine 替换)\u003c\/li\u003e\n\u003cli\u003e[彩蛋：Where DSL 支持](##彩蛋：Where DSL 支持)\u003c\/li\u003e\n\u003c\/ul\u003e\n\u003ch2 id=\u0022user-defined-function-支持\u0022\u003eUser Defined Function 支持\u003c\/h2\u003e\n\u003ch3 id=\u0022方案\u0022\u003e方案\u003c\/h3\u003e\n\u003cp\u003e\u003cimg src=\u0022\/tidb-hackthon\/mysql_udf.png\u0022 alt=\u0022image-20191029172115434\u0022\u003e\u003c\/p\u003e\n\u003cp\u003eTiDB 一直是支持 MySQL Protocol 的，不过对于其中的一些特性也没有完全支持，其中 UDF （User Defined Function 用户自定义方法）就一直在 Github 上的 ReadMe 上写着不支持。其实从日常使用上来看 UDF 还是一个挺常见的功能一直不支持也是挺难受 orz。\u003c\/p\u003e","inLanguage":"en-US","author":"Intra-Mind Traveler","creator":"Intra-Mind Traveler","publisher":"Intra-Mind Traveler","accountablePerson":"Intra-Mind Traveler","copyrightHolder":"Intra-Mind Traveler","copyrightYear":"2019","datePublished":"2019-12-03 00:00:00 \u002b0000 UTC","dateModified":"2019-12-03 00:00:00 \u002b0000 UTC","url":"https:\/\/blog.lfkdsk.org\/tidb-hackthon\/","keywords":["Hackathon","Blog","lfkdsk's Blog","lfkdsk","刘丰恺"]}</script><title>Ti-Alloy：一次 TiDB Hackathon 摸鱼 - lfkdsk's Blog</title>
+<meta content="Ti-Alloy：一次 TiDB Hackathon 摸鱼 - lfkdsk's Blog" property="og:title"/><meta content="article" property="og:type"/><meta content="上个周末又是一次 PingCap 举办的 TiDB Hackathon，上一次某个拿了一等奖的老哥又拉我参赛。日常的对整个系统了解程度一般没什么预先准备，key-point 也不是特别出彩的东西，因此也难免 Hackathon 陪跑、Prize Skip （笑死🤣）。不过参加 Hackathon 本身就是件比较有意思的事情，因为在有限的时间内找出 key-point、对复杂的代码进行分析理解找出实现方案、写代码完成功能、做 Slide 给大家吹水，其实都是比较锻炼能力的。
+在国内面试很多面试官都会对某些流行框架代码的实现方案有所要求，但是其实这方面固然重要但是只要你去看很少能有你看不懂的东西。从个人而言，可能会更看重快速了解一份陌生代码、陌生系统的设计逻辑，找出症结、获得经验方面的能力。所以可能推荐大家可以多摸摸 Hackathon 方面的鱼，还是有很多增长的。
+
+这次由于上周一直在感冒发烧，所以这次的 Hackathon 全程是在家云的，而且由于 key-point 比较小，代码写起来也很快，因此娱乐休息在家一个没落下，感冒发烧还好了，比较开心。
+“这也能云☁️？？”
+
+这次做出的最后的结果，其实是一个 TiDB 上比较容易的拓展方案集（包括换 UDF 支持、给 TiDB 换 Store Engine、DSL 支持）。其实开始做的时候打算的内容还挺多的，不过时间太短也没都做完就选了几个点来完成了，这里简单做下记录。
+（最后看了很多 dalao 的开发演示，深感在做 db 和分布式方面的能力还是有待加强，很多方案真的挺惊艳的）。
+
+本文目录
+
+
+[User Defined Function 支持](##User Defined Function 支持)
+[Ti-Alloy Engine 替换](##Ti-Alloy Engine 替换)
+[彩蛋：Where DSL 支持](##彩蛋：Where DSL 支持)
+
+User Defined Function 支持
+方案
+
+TiDB 一直是支持 MySQL Protocol 的，不过对于其中的一些特性也没有完全支持，其中 UDF （User Defined Function 用户自定义方法）就一直在 Github 上的 ReadMe 上写着不支持。其实从日常使用上来看 UDF 还是一个挺常见的功能一直不支持也是挺难受 orz。" name="description"/><link href="https://fonts.googleapis.com/css?family=Arvo|Permanent+Marker" rel="stylesheet"/><link href="https://unpkg.com/flexboxgrid@6.3.1/dist/flexboxgrid.min.css" rel="stylesheet"/><link href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/2.10.0/github-markdown.min.css" rel="stylesheet"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/androidstudio.min.css" rel="stylesheet"/><link href="/css/paper.css" rel="stylesheet"/><link href="/css/index.css" rel="stylesheet"/><link href="/index.xml" rel="alternate" title="lfkdsk's Blog" type="application/rss+xml"/><link href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css?family=Bree+Serif|Bungee+Shade" rel="stylesheet"/><script>(function(){}).call("object"==typeof window&&window||"object"==typeof self&&self||"object"==typeof global&&global||{})</script><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-8TMSDJG47Q"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8TMSDJG47Q")</script></head><body><article class="post Chinese" id="article"><div class="row"><div class="paper col-xs-12 col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2"><a href="/"><div class="head-line"></div></a><header class="post-header"><h1 class="post-title">Ti-Alloy：一次 TiDB Hackathon 摸鱼</h1><div class="row"><div class="col-xs-6"><time class="post-date" datetime="2019-12-03 00:00:00 UTC">03 Dec 2019</time></div><div class="col-xs-6"><div class="post-author"><a href="https://blog.lfkdsk.org/" target="_blank">@Intra-Mind Traveler</a></div></div></div></header><div class="post-content markdown-body"><p>上个周末又是一次 PingCap 举办的 TiDB Hackathon，上一次某个拿了一等奖的老哥又拉我参赛。日常的对整个系统了解程度一般没什么预先准备，key-point 也不是特别出彩的东西，因此也难免 Hackathon 陪跑、Prize Skip （笑死🤣）。不过参加 Hackathon 本身就是件比较有意思的事情，因为在有限的时间内找出 key-point、对复杂的代码进行分析理解找出实现方案、写代码完成功能、做 Slide 给大家吹水，其实都是比较锻炼能力的。</p><p>在国内面试很多面试官都会对某些流行框架代码的实现方案有所要求，但是其实这方面固然重要但是只要你去看很少能有你看不懂的东西。从个人而言，可能会更看重快速了解一份陌生代码、陌生系统的设计逻辑，找出症结、获得经验方面的能力。所以可能推荐大家可以多摸摸 Hackathon 方面的鱼，还是有很多增长的。</p><blockquote><p>这次由于上周一直在感冒发烧，所以这次的 Hackathon 全程是在家云的，而且由于 key-point 比较小，代码写起来也很快，因此娱乐休息在家一个没落下，感冒发烧还好了，比较开心。</p><p>“这也能云☁️？？”</p></blockquote><p>这次做出的最后的结果，其实是一个 TiDB 上比较容易的拓展方案集（包括换 UDF 支持、给 TiDB 换 Store Engine、DSL 支持）。其实开始做的时候打算的内容还挺多的，不过时间太短也没都做完就选了几个点来完成了，这里简单做下记录。</p><p>（最后看了很多 dalao 的开发演示，深感在做 db 和分布式方面的能力还是有待加强，很多方案真的挺惊艳的）。</p><blockquote><p>本文目录</p></blockquote><ul><li>[User Defined Function 支持](##User Defined Function 支持)</li><li>[Ti-Alloy Engine 替换](##Ti-Alloy Engine 替换)</li><li>[彩蛋：Where DSL 支持](##彩蛋：Where DSL 支持)</li></ul><h2 id="user-defined-function-支持">User Defined Function 支持</h2><h3 id="方案">方案</h3><p><img alt="image-20191029172115434" src="/tidb-hackthon/mysql_udf.png"/></p><p>TiDB 一直是支持 MySQL Protocol 的，不过对于其中的一些特性也没有完全支持，其中 UDF （User Defined Function 用户自定义方法）就一直在 Github 上的 ReadMe 上写着不支持。其实从日常使用上来看 UDF 还是一个挺常见的功能一直不支持也是挺难受 orz。</p><p>这个功能其实之前的 Hackathon 里有人做过，但是明显的实现不大对劲做完之后让人更难受了。由于许多的 MySQL 内置函数，在 TiDB Parser 侧直接在 goyacc 上语法级写死了，之前看他们文章应该是拖了个新的 parser 库自己加语法做的 Create Function，这也太难受了这样的 UDF 其实很难 runtime 加进去，要不就是 parser 开洞允许另一套 UDF 处理逻辑插入，要不就真的关闭 runtime 加 udf 的功能了。</p><blockquote><p>起码两年前和 Ed huang 聊，他们就希望能改善使用 goyacc 做 CodeGen 进行 Parser 构造的方案了，不过看来在 go 社区可能工业上令人信服的 Parser 框架还是不够健壮吧。</p><p>话说 debug gencode 分析文法冲突不难受么？（或许我没有掌握正确的方法。</p></blockquote><p>不过其实这个问题思路解决起来也很好弄，goyacc 里面增加对 Generic Function 的文法支持，然后再在系统里肯定有个 go function 的映射 map ，增加 binding 就好了（大不了开洞）。仔细搜了下 <code>parser.y</code> 里面的 BNF 其实已经有 FunctionCallGeneric 的支持了：</p><pre tabindex="0"><code class="language-yacc" data-lang="yacc">FunctionCallGeneric:
+	identifier '(' ExpressionListOpt ')'
+	{
+		$$ = &amp;ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: $3.([]ast.ExprNode)}
+	}
+</code></pre><p>看文法就是支持任意 stringlit 的方法名，和数量可变的参数列表，那其实在文法方面都不需要修改了。因此直接去找存储方法映射关系的地方就好了，简单的找一下就能发现 <code>builtin.go</code> 里面的 <code>funcs</code> 就是存储的位置：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">funcs</span> = <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">FunctionClass</span>{
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">// common functions
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">Coalesce</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">coalesceFunctionClass</span>{<span style="color:#a6e22e">BaseFunctionClass</span>{<span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">Coalesce</span>, <span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>}},
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">IsNull</span>:   <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">isNullFunctionClass</span>{<span style="color:#a6e22e">BaseFunctionClass</span>{<span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">IsNull</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>}},
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">Greatest</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">greatestFunctionClass</span>{<span style="color:#a6e22e">BaseFunctionClass</span>{<span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">Greatest</span>, <span style="color:#ae81ff">2</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>}},
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">Least</span>:    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">leastFunctionClass</span>{<span style="color:#a6e22e">BaseFunctionClass</span>{<span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">Least</span>, <span style="color:#ae81ff">2</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>}},
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">Interval</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">intervalFunctionClass</span>{<span style="color:#a6e22e">BaseFunctionClass</span>{<span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">Interval</span>, <span style="color:#ae81ff">2</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>}},
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">// ... 
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>包含 MySQL 自带的 Function 还有 Binary Operator 都存在了这里，简单的来说只要给这个结构体和相关 field 开洞就好了，这里面存储的 FunctionClass 其实这个 Interface：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span><span style="color:#75715e">// functionClass is the interface for a function which may contains multiple functions.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">FunctionClass</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">// getFunction gets a function signature by the types and the counts of given arguments.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">GetFunction</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">sessionctx</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">args</span> []<span style="color:#a6e22e">Expression</span>) (<span style="color:#a6e22e">BuiltinFunc</span>, <span style="color:#66d9ef">error</span>)
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>返回的结构是个 BuiltinFunc 的结构，然后这个 Interface 有一些诸如 <code>EvalString</code>, <code>EvalInt</code> 之类的 Function 具体处理方法，从代码来看这些内部函数为了逻辑清楚才多套了这么一层，比如说 <code>trim</code> 处理字符串的方法在 <code>GetFunction</code> 会被分成一个参数、两个参数、三个参数三种逻辑，然后对应三个 BuiltinFunc 结构体，完全处于逻辑复用考虑。</p><p>不过如果把这套完全迁移出来用于 UDF，未免比 MySQL 这种写一个 C-Function 就能用的 UDF 麻烦太多，所以就直接共享一套公用的 FunctionClass 好了，只在 BuiltinFunc 上有所区别：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">AddUserDefinedFunction</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">class</span> <span style="color:#a6e22e">BuiltinFunc</span>, <span style="color:#a6e22e">minArgs</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">maxArgs</span> <span style="color:#66d9ef">int</span>) {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">funcs</span>[<span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">ToLower</span>(<span style="color:#a6e22e">name</span>)] = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">UserDefinedFunctionClass</span>{<span style="color:#a6e22e">BaseFunctionClass</span>{<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">minArgs</span>, <span style="color:#a6e22e">maxArgs</span>}}
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">userDefinedFuncs</span>[<span style="color:#a6e22e">name</span>] = <span style="color:#a6e22e">class</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">userDefinedFuncs</span> = <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">BuiltinFunc</span>{}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">UserDefinedFunctionClass</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">BaseFunctionClass</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">UserDefinedFunctionClass</span>) <span style="color:#a6e22e">GetFunction</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">sessionctx</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">args</span> []<span style="color:#a6e22e">Expression</span>) (<span style="color:#a6e22e">BuiltinFunc</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">VerifyArgs</span>(<span style="color:#a6e22e">args</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">userDefinedFuncs</span>[<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">FuncName</span>] <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">VerifyArgs</span>(<span style="color:#a6e22e">args</span>)
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">userDefinedFuncs</span>[<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">FuncName</span>].<span style="color:#a6e22e">Initial</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">args</span>), <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>增加了如下的 Api，共享一套 FunctionClass 只在内部 BuiltinFunc 有区别，并且增加一个 Initial 的生命周期给去初始化相应的 Func 逻辑。因此一个 Plugin 化的 Trim UDF 其实就可以简写成这个样子：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">TrimFunction</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">BaseBuiltinFunc</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">TrimFunction</span>) <span style="color:#a6e22e">Clone</span>() <span style="color:#a6e22e">BuiltinFunc</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">newSig</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">TrimFunction</span>{}
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">newSig</span>.<span style="color:#a6e22e">CloneFrom</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">BaseBuiltinFunc</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">newSig</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">TrimFunction</span>) <span style="color:#a6e22e">Initial</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">sessionctx</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">args</span> []<span style="color:#a6e22e">Expression</span>) <span style="color:#a6e22e">BuiltinFunc</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">argTps</span> []<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">EvalType</span>
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">switch</span> len(<span style="color:#a6e22e">args</span>) {
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">argTps</span> = []<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">EvalType</span>{<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">ETString</span>}
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">2</span>:
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">argTps</span> = []<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">EvalType</span>{<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">ETString</span>, <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">ETString</span>}
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">case</span> <span style="color:#ae81ff">3</span>:
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">argTps</span> = []<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">EvalType</span>{<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">ETString</span>, <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">ETString</span>, <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">ETInt</span>}
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">bf</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewBaseBuiltinFuncWithTp</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">args</span>, <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">ETString</span>, <span style="color:#a6e22e">argTps</span><span style="color:#f92672">...</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">argType</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">args</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">GetType</span>()
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">bf</span>.<span style="color:#a6e22e">Tp</span>.<span style="color:#a6e22e">Flen</span> = <span style="color:#a6e22e">argType</span>.<span style="color:#a6e22e">Flen</span>
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">SetBinFlagOrBinStr</span>(<span style="color:#a6e22e">argType</span>, <span style="color:#a6e22e">bf</span>.<span style="color:#a6e22e">Tp</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">BaseBuiltinFunc</span> = <span style="color:#a6e22e">bf</span>
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">b</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">TrimFunction</span>) <span style="color:#a6e22e">EvalString</span>(<span style="color:#a6e22e">row</span> <span style="color:#a6e22e">chunk</span>.<span style="color:#a6e22e">Row</span>) (<span style="color:#a6e22e">d</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">isNull</span> <span style="color:#66d9ef">bool</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">// 具体的 Trim 逻辑
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>整套方案说了好多话，其实实现起来都很快的，主要是想给使用者什么样的 Function 接口想了一下，简化了 BuiltinFunc 编写的一些逻辑。最后写了几个 UDF 的 Plugin 实现，增加了启动前加载 Plugin UDF 的功能，补充了相关的 Unit-Test 这个功能就 OJBK 了。</p><p>提前加载 UDF Plugin 支持：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span>	<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">ForeachPlugin</span>(<span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">UDF</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">Plugin</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">udfPlugin</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">DeclareUDFManifest</span>(<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Manifest</span>)
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">meta</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">udfPlugin</span>.<span style="color:#a6e22e">GetUserDefinedFuncClass</span>()
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">expression</span>.<span style="color:#a6e22e">AddUserDefinedFunction</span>(<span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">FuncName</span>, <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">Func</span>, <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">MinArgs</span>, <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">MaxArgs</span>)
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">logutil</span>.<span style="color:#a6e22e">BgLogger</span>().<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">"insert udf"</span>, <span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">String</span>(<span style="color:#e6db74">"function name"</span>, <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">FuncName</span>))
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex"><span>	})
+</span></span></code></pre></div><h3 id="优缺点">优缺点</h3><p><img alt="image-20191029175304012" src="/tidb-hackthon/plugin_load.png"/></p><p>优点肯定是一个比较完善的 UDF 支持，没什么 Hack 的逻辑，UDF 也能 Runtime 插入使用 Plugin 的方式进行解耦。并且如上文代码所示其实插件实现也比较简洁，给插入 Function 留的接口也很方便。</p><p>不过缺点也有就是本事开放直接内部结构不是一个很安全的做法，正确的做法应该是尽量 BuiltInFunc 和外部逻辑尽管相似但是也有足够的安全隔离和转换机制支持，不过 Hackathon 上很多方案图快就是先能用就行。</p><h2 id="ti-alloy-engine-替换">Ti-Alloy Engine 替换</h2><h3 id="方案-1">方案</h3><p>在 UDF 的基础功能完善之上的实现就是对标 MySQL Engine、Prometheus remote Read/Write Storage、PostgreSQL Foreign Data Wrappers 之类的可替换 Storage Engine 的实现方案。 说起来也不是很稀奇，这种替换 Storage Engine 的方案其实也可以等同为一个 Proxy，之前开发过 ES、Prometheus 相关的 Proxy 方案本质上比较类似：</p><p><img alt="image-20191029175917701" src="/tidb-hackthon/ti-alloy.png"/></p><p>整体的结构图如下：</p><p><img alt="image-20191029180146544" src="/tidb-hackthon/struct.png"/></p><p>在 TiDB 里面从 SQL 的输入开始，会经过文法分析转变成等价的 AST，之后生成对应的 Logical Plan，经过一些优化逻辑的处理会生成实际执行的 Physical Plan 物理计划，这部分的 Executor 就可以增加一个 Plugin 的 Engine 支持，实质上也就是在 TableInfo 增加了一个 Engine 字段，可以指定使用对应的 Plugin Executor 进行解析。</p><p>在具体的 <a href="https://github.com/WPH95/tidb/pull/10/files#diff-badfcd30d7596a08cd207b8e6ae778e6R1954">实现 executor/build.go</a> 之中 <code>buildTableReader</code>, <code>buildTableScan</code> 等相关处理 Scan、Select 的部分加了钩子，根据 Engine 去选择 Plugin Engine 插入对应的流程：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">PluginScanExecutor</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex"><span>   <span style="color:#a6e22e">baseExecutor</span>
+</span></span><span style="display:flex"><span>   <span style="color:#a6e22e">Table</span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">TableInfo</span>
+</span></span><span style="display:flex"><span>   <span style="color:#a6e22e">Columns</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">ColumnInfo</span>
+</span></span><span style="display:flex"><span>   <span style="color:#a6e22e">Plugin</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">Plugin</span>
+</span></span><span style="display:flex"><span>   <span style="color:#a6e22e">pm</span>      <span style="color:#f92672">*</span><span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">EngineManifest</span>
+</span></span><span style="display:flex"><span>   <span style="color:#a6e22e">meta</span>    <span style="color:#f92672">*</span><span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">ExecutorMeta</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">PluginInsertExec</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex"><span>   <span style="color:#75715e">// ...
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">PluginSelectionExec</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex"><span>   <span style="color:#75715e">// ...
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex"><span><span style="color:#75715e">// 插入的处理方法
+</span></span></span></code></pre></div><p>这个 <code>PluginScanXXX</code> 相关的部分会连接一个对应的 Plugin 实现完善对应的接口：</p><p><img alt="image-20191029181400351" src="/tidb-hackthon/engine_plugin.png"/></p><p>这个是对应的 Engine Plugin 所需要实现的部分接口，可以 Hook 在流程处理上的部分 Executor 的操作，实现插入引擎的功能，这部分的协议接口的支持也是主要参考了上述所支持的接口定义。去 plugin 部分实现这些插件就可以替换存储引擎了：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex"><span>	<span style="color:#e6db74">"bufio"</span>
+</span></span><span style="display:flex"><span>	<span style="color:#e6db74">"context"</span>
+</span></span><span style="display:flex"><span>	<span style="color:#e6db74">"fmt"</span>
+</span></span><span style="display:flex"><span>	<span style="color:#e6db74">"github.com/pingcap/parser/model"</span>
+</span></span><span style="display:flex"><span>	<span style="color:#e6db74">"github.com/pingcap/tidb/expression"</span>
+</span></span><span style="display:flex"><span>	<span style="color:#e6db74">"github.com/pingcap/tidb/plugin"</span>
+</span></span><span style="display:flex"><span>	<span style="color:#e6db74">"github.com/pingcap/tidb/util/chunk"</span>
+</span></span><span style="display:flex"><span>	<span style="color:#e6db74">"io"</span>
+</span></span><span style="display:flex"><span>	<span style="color:#e6db74">"os"</span>
+</span></span><span style="display:flex"><span>	<span style="color:#e6db74">"strconv"</span>
+</span></span><span style="display:flex"><span>	<span style="color:#e6db74">"strings"</span>
+</span></span><span style="display:flex"><span>)
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ReadExecutor</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">pos</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">Files</span> = make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">bufio</span>.<span style="color:#a6e22e">Reader</span>)
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">OnReaderOpen</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">meta</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">ExecutorMeta</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">path</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">"/tmp/%s.log"</span>, <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">Table</span>.<span style="color:#a6e22e">Name</span>.<span style="color:#a6e22e">L</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">file</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#a6e22e">path</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">Files</span>[<span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">Table</span>.<span style="color:#a6e22e">Name</span>.<span style="color:#a6e22e">L</span>] = <span style="color:#a6e22e">bufio</span>.<span style="color:#a6e22e">NewReader</span>(<span style="color:#a6e22e">file</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">OnReaderNext</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">chk</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">chunk</span>.<span style="color:#a6e22e">Chunk</span>, <span style="color:#a6e22e">meta</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">ExecutorMeta</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">chk</span>.<span style="color:#a6e22e">Reset</span>()
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">reader</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Files</span>[<span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">Table</span>.<span style="color:#a6e22e">Name</span>.<span style="color:#a6e22e">L</span>]
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">line</span>, <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">reader</span>.<span style="color:#a6e22e">ReadLine</span>()
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">EOF</span> {
+</span></span><span style="display:flex"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex"><span>		}
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">es</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Split</span>(string(<span style="color:#a6e22e">line</span>), <span style="color:#e6db74">","</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Atoi</span>(<span style="color:#a6e22e">es</span>[<span style="color:#ae81ff">0</span>])
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span><span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">chk</span>.<span style="color:#a6e22e">AppendNull</span>(<span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">chk</span>.<span style="color:#a6e22e">AppendInt64</span>(<span style="color:#ae81ff">0</span>, int64(<span style="color:#a6e22e">i</span>))
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">chk</span>.<span style="color:#a6e22e">AppendString</span>(<span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">es</span>[<span style="color:#ae81ff">1</span>])
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">InsertFiles</span> = make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">File</span>)
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">OnInsertOpen</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">meta</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">ExecutorMeta</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">path</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">"/tmp/%s.log"</span>, <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">Table</span>.<span style="color:#a6e22e">Name</span>.<span style="color:#a6e22e">L</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">f</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">OpenFile</span>(<span style="color:#a6e22e">path</span>, <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">O_APPEND</span>|<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">O_CREATE</span>|<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">O_WRONLY</span>, <span style="color:#ae81ff">0644</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">InsertFiles</span>[<span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">Table</span>.<span style="color:#a6e22e">Name</span>.<span style="color:#a6e22e">L</span>] = <span style="color:#a6e22e">f</span>
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">OnInsertNext</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">rows</span> [][]<span style="color:#a6e22e">expression</span>.<span style="color:#a6e22e">Expression</span>, <span style="color:#a6e22e">meta</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">ExecutorMeta</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">row</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">rows</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">b</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Builder</span>{}
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">e</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">row</span> {
+</span></span><span style="display:flex"><span>			<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">String</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">","</span>)
+</span></span><span style="display:flex"><span>		}
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#e6db74">"\n"</span>)
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">InsertFiles</span>[<span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">Table</span>.<span style="color:#a6e22e">Name</span>.<span style="color:#a6e22e">L</span>].<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">String</span>())
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex"><span>		}
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">OnInsertClose</span>(<span style="color:#a6e22e">meta</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">plugin</span>.<span style="color:#a6e22e">ExecutorMeta</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">InsertFiles</span>[<span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">Table</span>.<span style="color:#a6e22e">Name</span>.<span style="color:#a6e22e">L</span>].<span style="color:#a6e22e">Close</span>()
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">OnCreateTable</span>(<span style="color:#a6e22e">tblInfo</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">TableInfo</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">path</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">"/tmp/%s.log"</span>, <span style="color:#a6e22e">tblInfo</span>.<span style="color:#a6e22e">Name</span>.<span style="color:#a6e22e">L</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">f</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span><span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">path</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Close</span>()
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">OnDropTable</span>(<span style="color:#a6e22e">tblInfo</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">TableInfo</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">path</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">"/tmp/%s.log"</span>, <span style="color:#a6e22e">tblInfo</span>.<span style="color:#a6e22e">Name</span>.<span style="color:#a6e22e">L</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Remove</span>(<span style="color:#a6e22e">path</span>)
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>比如上述的代码，可以理解为一个将存储信息存为 CSV 文件的一个最小实现，在最后的实现上还实现了一个简单的 elasticsearch proxy（Mock Skip）用来做演示 demo，实现的几个 UDF、Engine Plugin 也都做了相应的 unit-test，其实这里能做的事情也很多各种下推支持啊什么的，可优化空间还很大。</p><h3 id="show-case">Show Case</h3><p>这里的 Show Case 主要就是演示 UDF 支持和普通的 Table 和 ES Engine Table 的相关 join、select 功能，场景是首先假定了一张替换 Engine 的 ES 表，存的是 logs 日志数据，包含 ip、status code、以及相关的连接 message，另一张表就是普通的表，存的是 blacklist 的具体黑名单的数据，包含 ip、危险等级 level、以及相关的风险信息。</p><p>然后通过取 join 找出 logs 里面的被 block 的信息，展示 ES demo 的 Selection 下推支持、UDF 实现的 ip2city 的支持以及 Store 的 Engine 支持：</p><p><img alt="image-20191029182815850" src="/tidb-hackthon/engine_show_case.png"/></p><p>这里面 es 的 selection query 是一个虚拟的字段，把实际的 query string 下推到 ES 的 query 流程上去，并且整体的 Engine 实现支持最后和普通的 blacklist 进行 join ，通过 UDF 定义的 UDF_IP2CITY 把 ip 映射到对应的城市上去（虚构的）。一个比较简单的 show case ，下面的 explain 命令展示了对应的计算流程。</p><p>根据测试有限的逻辑，这里的 case 也提供了对应的测试：</p><p><img alt="image-20191029183115096" src="/tidb-hackthon/test_plugin.png"/></p><p>之前也提到了 TableInfo 的插入字段，这部分的实现方案处理也比较精致，在打印状态里能清晰的看出某个 table 属于哪个计算引擎：</p><p><img alt="image-20191029183356527" src="/tidb-hackthon/table_info.png"/></p><p>在使用 explain 打印计算流程的 task 上也能看到对应 Engine 的归属方案：</p><p><img alt="image-20191029183507558" src="/tidb-hackthon/es_expalin.png"/></p><h3 id="优缺点-1">优缺点</h3><p>通过 Plugin 和在内部下钩子的方式，实现 Storage Engine 的实现还是比较清晰的，不过多种对应 Engine 的 Api 都要分别实现，如果能有更好的 Engine Adapter 通过 GRPC 连接 remote engine 的话，其实实现会更加方便和好看的。或者更进一步提供 Custom Physical Plan 、 Logic Plan 的实现方案，增强系统的拓展性。</p><h2 id="彩蛋where-dsl-支持">彩蛋：Where DSL 支持</h2><h3 id="方案-2">方案</h3><p>上面的实现都是比较功能性的支持，但是闲的没事也想做点看起来炫酷能讲的点，这里也简单的实现了一个针对 Where DSL 的支持，这里对标的是 <a href="https://github.com/zombodb/zombodb">zombodb</a> 其中实现的部分 Query DSL：</p><p><a href="https://github.com/zombodb/zombodb/blob/master/QUERY-DSL.md">https://github.com/zombodb/zombodb/blob/master/QUERY-DSL.md</a></p><p><img alt="image-20191029184410130" src="/tidb-hackthon/query_dsl.png"/></p><p>不过这里只支持了一个 QueryString，String 格式是比较 ES-Like 的 StringQuery 的样式，里面比较麻烦的 ES JSON 风格的、Query Builder 的也实在比较麻烦就没有做。</p><p>整体上实现的 Where DSL 需要支持的样式比较类似于这个样子：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-sql" data-lang="sql"><span style="display:flex"><span><span style="color:#66d9ef">Select</span> <span style="color:#f92672">&lt;</span>fields<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">from</span> <span style="color:#f92672">&lt;</span>tables<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">where</span> <span style="color:#f92672">&lt;</span><span style="color:#66d9ef">table</span><span style="color:#f92672">&gt;</span> <span style="color:#f92672">===&gt;</span> <span style="color:#e6db74">'field1: xxxx AND field2: [1 TO 1000] OR ...'</span>
+</span></span></code></pre></div><p>这样的文法从结构上也可以看出来，对应的 DSL String 并没有放到整体的 Parser 里面去分析，毕竟在现有的 goyacc 的代码实现之下，支持一个 StringQuery 的相关支持也是有点心累所以这一层就只按照 StringLit 来处理就 OJBK。增加的 label 结构如下：</p><pre tabindex="0"><code class="language-yacc" data-lang="yacc">WhereDsl:
+    "WHERE" TableName "==&gt;" stringLit
+    {
+        $$ = &amp;ast.WhereDslStmt{Parser: parser,Table: $2.(*ast.TableName), DslString: $4}
+    }
+</code></pre><p>这个比较简单，为了与之前的 Where Phase 的逻辑进行兼容其实可以添加到之前的 WhereClauseOptional 之中比较好：</p><pre tabindex="0"><code class="language-yacc" data-lang="yacc">WhereClauseOptional:
+	{
+		$$ = nil
+	}
+|	WhereClause
+	{
+		$$ = $1
+	}
+</code></pre><p>但是原生的 Where Phase 的位置实在是太多了，这里我们主要是想要处理 Select 子句的逻辑，所以可以重新定义一个 Label 替换 Selection 里面的 Where Phase：</p><pre tabindex="0"><code class="language-yacc" data-lang="yacc">WhereClauseDslOptional:
+	{
+		$$ = nil
+	}
+|   WhereDsl
+    {
+    	$$ = $1
+    }
+|	WhereClause
+	{
+		$$ = $1
+	}
+</code></pre><p>这里需要增加一个 WhereDSL 所需要的 AST Node：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ParseInterface</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">ParseSpecExpr</span>(<span style="color:#a6e22e">exprDsl</span> <span style="color:#66d9ef">string</span>) (<span style="color:#a6e22e">ExprNode</span>, <span style="color:#66d9ef">error</span>)
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">WhereDslStmt</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">stmtNode</span>
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">Table</span>     <span style="color:#f92672">*</span><span style="color:#a6e22e">TableName</span>
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">Parser</span>    <span style="color:#a6e22e">ParseInterface</span>
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">DslString</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">Where</span>     <span style="color:#a6e22e">ExprNode</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">n</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">WhereDslStmt</span>) <span style="color:#a6e22e">Restore</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RestoreCtx</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">// TODO : convert dsl string to where syntax and write where
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">n</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">WhereDslStmt</span>) <span style="color:#a6e22e">Accept</span>(<span style="color:#a6e22e">v</span> <span style="color:#a6e22e">Visitor</span>) (<span style="color:#a6e22e">Node</span>, <span style="color:#66d9ef">bool</span>) {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">newNode</span>, <span style="color:#a6e22e">skipChildren</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Enter</span>(<span style="color:#a6e22e">n</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">skipChildren</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Leave</span>(<span style="color:#a6e22e">newNode</span>)
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">n</span> = <span style="color:#a6e22e">newNode</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">WhereDslStmt</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">v</span>.<span style="color:#a6e22e">Leave</span>(<span style="color:#a6e22e">n</span>)
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>替换到对应的 Yacc Selection 部分：</p><pre tabindex="0"><code class="language-yacc" data-lang="yacc">SelectStmtFromDualTable:
+	SelectStmtBasic FromDual WhereClauseDslOptional
+	{
+		st := $1.(*ast.SelectStmt)
+		lastField := st.Fields.Fields[len(st.Fields.Fields)-1]
+		if lastField.Expr != nil &amp;&amp; lastField.AsName.O == "" {
+			lastEnd := yyS[yypt-1].offset-1
+			lastField.SetText(parser.src[lastField.Offset:lastEnd])
+		}
+		if $3 != nil {
+            switch where := $3.(type) {
+                case ast.ExprNode:
+                    st.Where = where
+                case ast.StmtNode:
+                    st.WhereDsl = where
+            }
+		}
+	}
+
+SelectStmtFromTable:
+	SelectStmtBasic "FROM"
+	TableRefsClause WhereClauseDslOptional SelectStmtGroup HavingClause WindowClauseOptional
+	{
+		st := $1.(*ast.SelectStmt)
+		st.From = $3.(*ast.TableRefsClause)
+		lastField := st.Fields.Fields[len(st.Fields.Fields)-1]
+		if lastField.Expr != nil &amp;&amp; lastField.AsName.O == "" {
+			lastEnd := parser.endOffset(&amp;yyS[yypt-5])
+			lastField.SetText(parser.src[lastField.Offset:lastEnd])
+		}
+		if $4 != nil {
+            switch where := $4.(type) {
+                case ast.ExprNode:
+                    st.Where = where
+                case ast.StmtNode:
+                    st.WhereDsl = where
+            }
+		}
+		if $5 != nil {
+			st.GroupBy = $5.(*ast.GroupByClause)
+		}
+		if $6 != nil {
+			st.Having = $6.(*ast.HavingClause)
+		}
+		if $7 != nil {
+		    st.WindowSpecs = ($7.([]ast.WindowSpec))
+		}
+		$$ = st
+	}
+</code></pre><p>这里面由于本身 Where 子句扔进 AST 部分的是 Expr 但是一个 WhereDSL 的 Ast Node 是一个 StmtNode 所以这里的赋值要分门别类进行处理。至此在 Parser 层的文法上已经支持了 <code>Where &lt;tableName&gt; ===&gt; &lt;Query DSL&gt;</code> 的功能，但是本身的功能还是没有。</p><p>前文也说过，SQL =&gt; Ast =&gt; Plan 的流程，似乎实现这个功能就需要实现一个精简的 Query DSL Parser，然后嵌套生成出对应的 Logical Plan 才能用，但是这样的实现方式在 Hackathon 未免太不经济，而且需要 parser 侧和 tidb 侧进行联调，比较麻烦。</p><p>那我们可以换一种简单的思路，让 “凯撒的归凯撒，上帝的归上帝”，在 Parser 层生成的语法糖就不要到 DB 层再胡搞毛搞了，尽量在 Parser 层就完成这个转换为 Ast Node 的功能生成正常的 Plan ，毕其功于一役。因此仅需要实现一个简单的 DSL Parser ，此处默认了 Query DSL 是 field 组成的 list，支持 and or 之类的连接词的文法。那么通过对每部分 field 的转换，就能生成出一个 DSL =&gt; Origin Where Phase 的流程，有了正常的 Where 语句支持就可以吧 DSL 语法糖的部分化简在了 Parser 层而不会去写很多 Plan 的生成方案。</p><p>所以整体的流程大概是这样：</p><pre tabindex="0"><code>Where DSL =&gt; (Field Query List &lt;With AND, OR&gt;) =&gt; Where Phase Expr =&gt; Origin Plan Generator
+</code></pre><p>因此简单的拖了个 go 下的 parserc 库（吐槽一下没泛型全是 Interface 真滴难用）简单支持几个文法：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span><span style="color:#66d9ef">var</span> (
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">_string</span> = <span style="color:#a6e22e">StringLit</span>(<span style="color:#e6db74">`'`</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">_number</span> = <span style="color:#a6e22e">NumberLit</span>()
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">_between</span> = <span style="color:#a6e22e">Seq</span>(<span style="color:#e6db74">"["</span>, <span style="color:#a6e22e">_number</span>, <span style="color:#e6db74">"TO"</span>, <span style="color:#a6e22e">_number</span>, <span style="color:#e6db74">"]"</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">_label</span>  = <span style="color:#a6e22e">Regex</span>(<span style="color:#e6db74">"[a-zA-Z][a-zA-Z0-9]*"</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">_result</span> = <span style="color:#a6e22e">Any</span>(<span style="color:#a6e22e">_string</span>, <span style="color:#a6e22e">_number</span>, <span style="color:#a6e22e">_between</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">_term</span>   = <span style="color:#a6e22e">Seq</span>(<span style="color:#a6e22e">_label</span>, <span style="color:#e6db74">":"</span>, <span style="color:#a6e22e">_result</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">_op</span> = <span style="color:#a6e22e">Any</span>(<span style="color:#a6e22e">Bind</span>(<span style="color:#e6db74">"and"</span>, <span style="color:#66d9ef">nil</span>), <span style="color:#a6e22e">Bind</span>(<span style="color:#e6db74">"or"</span>, <span style="color:#66d9ef">nil</span>))
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">_andOp</span> = <span style="color:#a6e22e">Seq</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">_term</span>, <span style="color:#a6e22e">Some</span>(<span style="color:#a6e22e">Seq</span>(<span style="color:#a6e22e">_op</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">_term</span>)))
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">DslPhaseParser</span> = <span style="color:#a6e22e">Maybe</span>(<span style="color:#a6e22e">_andOp</span>)
+</span></span><span style="display:flex"><span>)
+</span></span></code></pre></div><p>上文省略了 Where 的生成过程仅展示了 Parser Combinator 的部分没有展示具体的生成过程，不过简单的可以看出支持 string、number、between 文法以及多个 labels 支持。</p><p>但是上文也说了对 Where Stmt 进行处理的时候，Where 本身是一个 ExprNode，也就是 Where 关键字后面的那堆 Query Expr，因此我们还是要从 Field Query String 生成出 ExprNode，但是如果手动构造浩如烟海的 AstNode 怕不是要累死，因此我们可以考虑一个比较 Hack 的方案，Re-Parser。</p><p>重新通过 parser 处理生成出一个具体 Stmt 的 Expr 部分，然后嵌入到流程之中，这也就是上面那个 ParserInterface 是用来干什么的，直接使用真的是循环引用要人命，Ast、Expression 和 Parser 包根本没法解耦，然后增加下面这个逻辑：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">n</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">WhereDslStmt</span>) <span style="color:#a6e22e">createWherePhase</span>() (<span style="color:#a6e22e">ExprNode</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">dsl</span>.<span style="color:#a6e22e">ExprParser</span>(<span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">DslString</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">exprNode</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Parser</span>.<span style="color:#a6e22e">ParseSpecExpr</span>(<span style="color:#a6e22e">result</span>)
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span> = <span style="color:#a6e22e">exprNode</span>
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">exprNode</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>这里通过 DSL Parser 生成的 Result ，重新被丢进了 ParserSpecExpr 的方法中进行重新生成 Where Node，这里 Node 所所引导的 Parser 就是整体的 Parser 实现，并且提供对应 ParseSpecExpr 的方法功能。再来看 <code>ParseSpecExpr</code> 这个方法：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Parser</span>) <span style="color:#a6e22e">ParseSpecExpr</span>(<span style="color:#a6e22e">exprDsl</span> <span style="color:#66d9ef">string</span>) (<span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">ExprNode</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">exprParser</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">New</span>()
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">sourceSQL</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">"select %s"</span>, <span style="color:#a6e22e">exprDsl</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">extractNodeFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">node</span> <span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">Node</span>) <span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">ExprNode</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">node</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">ast</span>.<span style="color:#a6e22e">SelectStmt</span>).<span style="color:#a6e22e">Fields</span>.<span style="color:#a6e22e">Fields</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Expr</span>
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">stmt</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">exprParser</span>.<span style="color:#a6e22e">ParseOneStmt</span>(<span style="color:#a6e22e">sourceSQL</span>, <span style="color:#e6db74">""</span>, <span style="color:#e6db74">""</span>)
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">extractNodeFunc</span>(<span style="color:#a6e22e">stmt</span>), <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>这个处理方式也是比较 Hack 的，把生成的 Where Phase 直接生成一个 Selection 语句，然后拿出其中的第一个 Expr，由于 Selection 语句是固定的，所以这个取值也是稳定的不会有取不出来的情况。这样重新生成的 WhereStmt 就会被重新挂在在 Selection 的结构体里：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-go" data-lang="go"><span style="display:flex"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">SelectStmt</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">dmlNode</span>
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">resultSetNode</span>
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">// SelectStmtOpts wraps around select hints and switches.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>	<span style="color:#f92672">*</span><span style="color:#a6e22e">SelectStmtOpts</span>
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">// Distinct represents whether the select has distinct option.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Distinct</span> <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">// From is the from clause of the query.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">From</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">TableRefsClause</span>
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">// Where is the where clause in select statement.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Where</span>    <span style="color:#a6e22e">ExprNode</span>
+</span></span><span style="display:flex"><span>	<span style="color:#a6e22e">WhereDsl</span> <span style="color:#a6e22e">StmtNode</span>
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">// ... other fields
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#75715e">// Restore implements Node interface.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">n</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SelectStmt</span>) <span style="color:#a6e22e">Restore</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RestoreCtx</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">// ...
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">WhereDsl</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">dsl</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">WhereDsl</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">WhereDslStmt</span>)
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span>, <span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">dsl</span>.<span style="color:#a6e22e">createWherePhase</span>() <span style="color:#75715e">// 重新生成了 Where Stmt 嵌入流程
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>	}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">WriteKeyWord</span>(<span style="color:#e6db74">" WHERE "</span>)
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span>.<span style="color:#a6e22e">Restore</span>(<span style="color:#a6e22e">ctx</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Annotate</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">"An error occurred while restore SelectStmt.Where"</span>)
+</span></span><span style="display:flex"><span>		}
+</span></span><span style="display:flex"><span>	}  
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">// ... 
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#75715e">// Accept implements Node Accept interface.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">n</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SelectStmt</span>) <span style="color:#a6e22e">Accept</span>(<span style="color:#a6e22e">v</span> <span style="color:#a6e22e">Visitor</span>) (<span style="color:#a6e22e">Node</span>, <span style="color:#66d9ef">bool</span>) {
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">// ...
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">WhereDsl</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">dslNode</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">WhereDsl</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">WhereDslStmt</span>)
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span>, <span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">dslNode</span>.<span style="color:#a6e22e">createWherePhase</span>()
+</span></span><span style="display:flex"><span>	}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">node</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span>.<span style="color:#a6e22e">Accept</span>(<span style="color:#a6e22e">v</span>)
+</span></span><span style="display:flex"><span>		<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex"><span>			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">n</span>, <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex"><span>		}
+</span></span><span style="display:flex"><span>		<span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">Where</span> = <span style="color:#a6e22e">node</span>.(<span style="color:#a6e22e">ExprNode</span>)
+</span></span><span style="display:flex"><span>	}  
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">// ...
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>因此在系统流程通过 Visitor 对 Select Stmt 进行分析的 <code>Restore</code> 和 <code>Accept</code> 流程之中，可以直接通过 DSL 语法糖重新生成 Where Stmt 的方式实现了这种支持。最终实现了我们的目标，不动 DB 只在 Parser 层完成任务。</p><h3 id="show-case-1">Show Case</h3><p><img alt="image-20191029192459369" src="/tidb-hackthon/show_case.png"/></p><p><img alt="image-20191029192529585" src="/tidb-hackthon/where_show_case.png"/></p><p>最后的这个演示例子也和上面 Ti-Alloy Engine 替换的部分有所关联，这里还是那个 logs 的 ES Engine 然后此处使用了上面我们支持的 query 实现 + Where DSL 的方式实现了这个功能，这里可以看到 select 到了所以状态码是 200 的 log 日志信息。</p><h2 id="flags--summary">Flags &amp; Summary</h2><p><img alt="image-20191029183943398" src="/tidb-hackthon/flags.png"/></p><p>最后惯例性的留下了一些 Flags ，其中的一些点前文也都提到了。</p><p>总结：虽然和某些 dalao 相比这次的 key-point 选题不够有亮点，也成功实现了 Hackathon 陪跑、Prize Skip。不过和朋友参加 Hackathon 本身的经验也比较有趣，提出想法，快速的实现解决问题，对我而言快速结合对 DB、Parser 的已有知识对大型系统的实现方式进行分析和修改实现更是弥足珍贵的锻炼。之后如果休息日不忙的 Hackathon 估计会参加，如果能在家 ☁️ 就更好了（云总警告⚠️）。写下这篇文章，权做总结与锻炼 QwQ</p></div><p>Subscribe：<a href="https://blog.lfkdsk.org/index.xml" target="_blank">lfkdsk's Blog</a></p><div style="height:50px"></div><div class="post-comments"><div id="disqus_thread"></div><script>window.addEventListener("load",()=>{(function(){var e=document,t=e.createElement("script");t.src="https://lfkdsk.disqus.com/embed.js",t.setAttribute("data-timestamp",+new Date),(e.head||e.body).appendChild(t)})()})</script><noscript>Please enable JavaScript to view the
+<a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div></div></div></article><script src="/js/highlight.pack.js"></script><script src="https://unpkg.com/quicklink@0.1.1/dist/quicklink.umd.js"></script><script>hljs.initHighlightingOnLoad();var posts=document.getElementById("posts-list");posts&&quicklink({el:posts,priority:!0})</script></body></html>

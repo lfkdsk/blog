@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>翻译 on lfkdsk's Blog</title><link>https://blog.lfkdsk.org/tags/%E7%BF%BB%E8%AF%91/</link><description>Recent content in 翻译 on lfkdsk's Blog</description><generator>Hugo</generator><language>cn</language><lastBuildDate>Fri, 24 Feb 2017 21:43:32 +0000</lastBuildDate><atom:link href="https://blog.lfkdsk.org/tags/%E7%BF%BB%E8%AF%91/index.xml" rel="self" type="application/rss+xml"/><item><title>Sketch 的过去现在和未来</title><link>https://blog.lfkdsk.org/tanslate-sketch/</link><pubDate>Fri, 24 Feb 2017 21:43:32 +0000</pubDate><guid>https://blog.lfkdsk.org/tanslate-sketch/</guid><description>&lt;ul>
+&lt;li>
+&lt;p>原文链接 : &lt;a href="https://medium.com/habit-of-introspection/the-past-present-and-future-of-sketch-d5237879b7af#.1qa7ojbp1">The Past, Present and Future of Sketch&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>原文作者 : &lt;a href="https://medium.com/@gt">Geoff Teehan&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>译文出自 : &lt;a href="https://github.com/xitu/gold-miner">掘金翻译计划&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>译者 : &lt;a href="https://github.com/lfkdsk">lfkdsk&lt;/a>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>校对者:&lt;a href="https://github.com/shaohui10086">邵辉Vista&lt;/a>, &lt;a href="https://github.com/lihenair">lihenair&lt;/a>&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h1 id="sketch的过去现在和未来">Sketch的过去现在和未来&lt;/h1>
+&lt;p>在一次 Adobe 的活动上有人问我对 &lt;a href="http://landing.adobe.com/en/na/products/creative-cloud/comet/229818-notifyme.html?sdid=NYTLR42C&amp;amp;mv=search&amp;amp;s_kwcid=AL!3085!3!93823739227!e!!g!!adobe%20comet&amp;amp;ef_id=VWDaFgAABRB1hgVZ:20160111181832:s">Comet&lt;/a> 有什么看法。这让我想起了 Comet 对 &lt;a href="https://www.sketchapp.com/">Sketch&lt;/a> 意味着什么。&lt;/p>
+&lt;p>Sketch 和 Photoshop 已经成为产品设计者的首选工具，而且大部分我今天交流的设计者都已经从 Photoshop 切换到 Sketch 了。&lt;/p>
+&lt;p>产品原型已经成为产品设计的一个重要组成部分，然而直到 Comet 出现之前， Adobe 在这个领域没有做出任何建树。 Adobe 也意识到类似于 Sketch 的简单而专注的设计工具会逐渐流行普及，变成产品设计者的首选工具，这可能对 Comet 的问世充当了重要的角色。&lt;/p>
+&lt;p>我当时的想法是如果我是 Pieter ，我一定会吓得屁滚尿流。我周围的谈话都是关于 Pieter ， Comet 以及 Sketch 将如何反击的。当时，我非常严厉的跟 Pieter 说，如果他想避免公司破产，他就需要融资并发展 Sketch 。 David 和 Goliath ，也许现在角色要对换一下。&lt;/p>
+&lt;p>我接着说，尽管 Sketch 从发布以来已经连续4年多取得了良好发展；但它没有在原轨道上高速提升来维持它应有的地位。&lt;/p>
+&lt;p>我意识到 Pieter 不经常接受采访，所以我不确定他和我聊天谈论感觉如何，更不用说谈论 Comet vs Sketch 了。然而，当我和他交流的时候， Pieter 是亲切而又开朗的。下面是我们聊天的一些亮点。&lt;/p></description></item><item><title>选择使用正确的 Markdown Parser</title><link>https://blog.lfkdsk.org/translate-md/</link><pubDate>Fri, 24 Feb 2017 21:40:55 +0000</pubDate><guid>https://blog.lfkdsk.org/translate-md/</guid><description>&lt;ul>
+&lt;li>原文链接 : &lt;a href="https://css-tricks.com/choosing-right-markdown-parser/">Choosing the Right Markdown Parser&lt;/a>&lt;/li>
+&lt;li>原文作者 : &lt;a href="https://css-tricks.com">CSS-TRICKS&lt;/a>&lt;/li>
+&lt;li>译文出自 : &lt;a href="https://github.com/xitu/gold-miner">掘金翻译计划&lt;/a>&lt;/li>
+&lt;li>译者 : &lt;a href="https://github.com/lfkdsk">lfkdsk&lt;/a>&lt;/li>
+&lt;li>校对者: &lt;a href="https://github.com/brucezz">brucezz&lt;/a> &lt;a href="https://github.com/lekenny">lekenny&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;p>&lt;em>以下客座文章由&lt;a href="http://www.raybo.org/">Ray Villalobos&lt;/a>提供。在这篇文章中Ray将要去探索很多种不同的Markdown语法。所有的这些MarkDown变种均提供了不同的特性，都超越传统的Markdown语法，却又相互之间又各有不同。如果你正在挑选一门Markdown语言使用（或是提供给你的Web产品的用户使用），那你就值得的去了解它们，一旦选定就很难再切换到别的Markdown版本而且挑选的结果依赖于你需要哪些特性。Ray提供的一门&lt;a href="http://www.lynda.com/Web-Development-tutorials/Up-Running-Markdown/438888-2.html">关于MarkDown课程&lt;/a>将会分享这些不同的版本都拥有哪些特性去帮助你做出明智的选择。&lt;/em>&lt;/p>
+&lt;p>Markdown改变了很多专业领域的书写方式。这种语言使用简单的文本和极少的标记就能够将其转换为越来越多的格式。然而不是所有的Markdown解析器被创造出来都是一样的。因为原来的规范没有与时俱进，替代版本像是 Multi-Markdown、GFM(Github Flavored Markdown)、Markdown Extra和其他的版本扩充了这门语言。&lt;/p>
+&lt;p>&lt;a href="https://daringfireball.net/projects/markdown/">Markdown的原始解析器&lt;/a>是用Perl编写的。核心的特性包括解析块元素（例如段落，换行，标头，块引用，列表，代码块和水平线）和行内元素（链接，加重，代码段和图片）。从那以后，该解析器的作者John Gruber再也没有扩充过语法了，所以很多的新增和实现伴随着不同的他们认为合适的、或是支持解释某些元素的解析器支持浮出水面。&lt;/p>
+&lt;p>&lt;img src="https://cdn.css-tricks.com/wp-content/uploads/2016/01/choose-markdown.jpg" alt="">&lt;/p>
+&lt;h3 id="选择一个版本">选择一个版本&lt;/h3>
+&lt;p>在一个程序里实现Markdown功能需要考虑很多，包括你将要使用的开发语言和你想要支持的特性。原始的版本是由Perl编写的，对于每一个项目来说，这并不是一个实用的选择。最流行的实现版本包括：PHP、Ruby和JavaScript。你选择了哪种语言将会间接影响你能支持哪些特性和能使用哪些库。让我们来看看一些选择：&lt;/p>
+&lt;table>
+ &lt;thead>
+ &lt;tr>
+ &lt;th>语言&lt;/th>
+ &lt;th>库 (下载项目)&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td>Perl&lt;/td>
+ &lt;td>&lt;a href="http://daringfireball.net/projects/markdown/">Original version&lt;/a>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>JavaScript&lt;/td>
+ &lt;td>&lt;a href="https://github.com/jgm/commonmark.js">CommonMark&lt;/a>、&lt;a href="https://github.com/chjj/marked">Marked&lt;/a>、&lt;a href="https://github.com/markdown-it/markdown-it">Markdown-it&lt;/a>、&lt;a href="https://github.com/jonschlinkert/remarkable">Remarkable&lt;/a>、&lt;a href="https://github.com/showdownjs/showdown">Showdown&lt;/a>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>Ruby&lt;/td>
+ &lt;td>&lt;a href="https://github.com/github/markup">Github Flavored Markup&lt;/a>、&lt;a href="https://github.com/gettalong/kramdown">Kramdown&lt;/a>、&lt;a href="https://github.com/bhollis/maruku">Maruku&lt;/a>、&lt;a href="https://github.com/vmg/redcarpet">Redcarpet&lt;/a>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>PHP&lt;/td>
+ &lt;td>&lt;a href="https://github.com/cebe/markdown">Cebe Markdown&lt;/a>、&lt;a href="https://github.com/kzykhys/Ciconia">Ciconia&lt;/a>、&lt;a href="https://github.com/erusev/parsedown">Parsedown&lt;/a>、&lt;a href="https://github.com/piwi/markdown-extended">PHP Markdown Extended&lt;/a>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>Python&lt;/td>
+ &lt;td>&lt;a href="https://pypi.python.org/pypi/Markdown">Python Markdown&lt;/a>&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
+&lt;/table>
+&lt;p>以防万一你想用别的语言去实现Markdown，这里还有许多额外的&lt;a href="https://github.com/markdown/markdown.github.com/wiki/Implementations">其他的语言&lt;/a>实现的版本。&lt;/p>
+&lt;h3 id="核心特性">核心特性&lt;/h3>
+&lt;p>核心Markdown语言支持许多非常有用的默认功能。虽然不同的实现支持一系列的扩展功能，他们都应该至少支持以下核心语法：&lt;a href="https://daringfireball.net/projects/markdown/syntax#html">行内html&lt;/a>、&lt;a href="https://daringfireball.net/projects/markdown/syntax#p">自动分段&lt;/a>、&lt;a href="https://daringfireball.net/projects/markdown/syntax#header">标头&lt;/a>、&lt;a href="https://daringfireball.net/projects/markdown/syntax#blockquote">块引用&lt;/a>、&lt;a href="https://daringfireball.net/projects/markdown/syntax#list">列表&lt;/a>、&lt;a href="https://daringfireball.net/projects/markdown/syntax#precode">代码块&lt;/a>、&lt;a href="https://daringfireball.net/projects/markdown/syntax#hr">水平线&lt;/a>、&lt;a href="https://daringfireball.net/projects/markdown/syntax#link">链接&lt;/a>、&lt;a href="https://daringfireball.net/projects/markdown/syntax#em">加重&lt;/a>、&lt;a href="https://daringfireball.net/projects/markdown/syntax#code">行内代码&lt;/a> 和 &lt;a href="https://daringfireball.net/projects/markdown/syntax#img">图片&lt;/a>.&lt;/p>
+&lt;h3 id="值得注意的版本">值得注意的版本&lt;/h3>
+&lt;p>可用Markdown的版本有很多，有几个已经对其它版本有很大的影响。正因如此，你会经常看到他们被其他版本引述作为其中的一部分。例如，库会提到支持CommonMark，GFM或是Multi-Markdown。让我们来看看那意味着什么。&lt;/p>
+&lt;h4 id="gfm">GFM&lt;/h4>
+&lt;p>Github是使Markdown在开发者中流行的原因之一，开源共享平台接受并扩展了一个叫&lt;a href="https://help.github.com/articles/working-with-advanced-formatting/">Github Flavored Markup&lt;/a>的版本，（GFM）包括围栏代码块，URL自动链接，删除线，表格甚至能够创建带有勾选框的任务列表。所以，当一个版本支持提及的GFM，就是实现了这些扩展。&lt;/p>
+&lt;p>&lt;strong>支持功能&lt;/strong>：[围栏代码块]、[语法高亮]、[表格]、[URL 自动补全链接]、[删除线]&lt;/p>
+&lt;h4 id="commonmark">CommonMark&lt;/h4>
+&lt;p>最近有一个行动去规范Markdown语法。一组Markdown开发者加入去创建一个版本，测试和文档，最终的结果就是名为&lt;a href="http://commonmark.org/">CommonMark&lt;/a>的更强大的规范语言。此时，这个实现添加了围栏代码块，但是更多的是某些特征是如何获得一致的输出和转换要实现的具体细节。很多的拓展将会带来更加符合&lt;a href="https://github.com/jgm/CommonMark/wiki/Proposed-Extensions">其他语言&lt;/a>已经提出的特性.&lt;/p>
+&lt;p>这种格式是较新的，不支持很多功能，但它正在积极开发并有计划地增加了许多Multi-Markdown的特性。&lt;/p>
+&lt;p>&lt;strong>支持功能&lt;/strong>: [围栏代码块]、[URL 自动补全链接]、[删除线]&lt;/p>
+&lt;h4 id="multi-markdown">Multi-markdown&lt;/h4>
+&lt;p>第一个拓展了这门语言的重大的项目是Multi-Markdown。它增加了很多其他版本已经支持的特性。它最初和Markdown一样是用Perl编写的，不过后来转用C来写。所以，如果你看到一个项目支持Multi-Markdown，那么它很可能具有&lt;a href="https://rawgit.com/fletcher/human-markdown-reference/master/index.html">这些功能&lt;/a>大部分。&lt;/p>
+&lt;h3 id="可选择特性">可选择特性&lt;/h3>
+&lt;p>让我们来看看这些不同实现版本都支持的特性。&lt;/p>
+&lt;h4 id="围栏代码块">围栏代码块&lt;/h4>
+&lt;p>能够简单地在Markdown中添加代码是开发者添加的最好的功能之一。原始的实现会将四个空格或是一个制表符开头的行自动将文本作为代码块。有几个Markdown版本把代码块合并起来，允许你在文本开头使用三个刻度标记（`），或在某些情况下三个波浪字符（〜），以此把文本标记为代码块：&lt;/p>
+&lt;pre>&lt;code>``` 
+body { 
+ margin: 0; 
+ padding: 0; 
+ color: #222; 
+ background-color: white; 
+ font-family: sans-serif; 
+ font-size: 1.8rem; 
+ line-height: 160%; 
+ font-weight: 400; 
+} 
+​``` 
+&lt;/code>&lt;/pre>
+&lt;p>&lt;strong>支持的版本有:&lt;/strong> &lt;a href="http://commonmark.org/">CommonMark&lt;/a>、&lt;a href="https://help.github.com/articles/github-flavored-markdown/">Github Flavored Markdown&lt;/a>、&lt;a href="http://kramdown.gettalong.org/">Kramdown&lt;/a>、&lt;a href="https://markdown-it.github.io/">Markdown-it&lt;/a>、&lt;a href="https://github.com/chjj/marked">Marked&lt;/a>、&lt;a href="http://maruku.rubyforge.org/index.html">Maruku&lt;/a>、&lt;a href="http://fletcherpenney.net/multimarkdown/">Multi-Markdown&lt;/a>、&lt;a href="https://github.com/piwi/markdown-extended">PHP Markdown Extended&lt;/a>、&lt;a href="https://pythonhosted.org/Markdown/">Python Markdown&lt;/a>、&lt;a href="https://github.com/vmg/redcarpet">Redcarpet&lt;/a>、&lt;a href="https://jonschlinkert.github.io/remarkable/demo/">Remarkable&lt;/a>、&lt;a href="http://showdownjs.github.io/demo/">Showdown&lt;/a>&lt;/p></description></item></channel></rss>

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>情怀向 on lfkdsk's Blog</title><link>https://blog.lfkdsk.org/tags/%E6%83%85%E6%80%80%E5%90%91/</link><description>Recent content in 情怀向 on lfkdsk's Blog</description><generator>Hugo</generator><language>cn</language><lastBuildDate>Sat, 10 Feb 2007 22:36:42 +0000</lastBuildDate><atom:link href="https://blog.lfkdsk.org/tags/%E6%83%85%E6%80%80%E5%90%91/index.xml" rel="self" type="application/rss+xml"/><item><title>情怀向：仙剑Dos版攻略</title><link>https://blog.lfkdsk.org/xianjian10/</link><pubDate>Sat, 10 Feb 2007 22:36:42 +0000</pubDate><guid>https://blog.lfkdsk.org/xianjian10/</guid><description>&lt;p>初中时候的中二之作。&lt;/p>
+&lt;!-- &lt;center>&lt;embed src="xianjian.pdf" width="850" height="600">&lt;/center> -->
+&lt;script type="text/javascript" src= 'https://blog.lfkdsk.org//js/pdf-js/build/pdf.js'>&lt;/script>
+&lt;style>
+#the-canvas {
+ border: 1px solid black;
+ direction: ltr;
+ width: 100%;
+ height: auto;
+ display: none;
+}
+
+#paginator {
+ display: none;
+ text-align: center;
+ margin-top: 10px;
+}
+
+#loadingWrapper {
+ display: none;
+ justify-content: center;
+ align-items: center;
+ width: 100%;
+ height: 350px;
+}
+
+#loading {
+ display: inline-block;
+ width: 50px;
+ height: 50px;
+ border: 3px solid #d2d0d0;;
+ border-radius: 50%;
+ border-top-color: #383838;
+ animation: spin 1s ease-in-out infinite;
+ -webkit-animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+ to { -webkit-transform: rotate(360deg); }
+}
+@-webkit-keyframes spin {
+ to { -webkit-transform: rotate(360deg); }
+}
+&lt;/style>
+
+&lt;div id="embed-pdf-container">
+ &lt;div id="loadingWrapper">
+ &lt;div id="loading">&lt;/div>
+ &lt;/div>
+ &lt;canvas id="the-canvas">&lt;/canvas>
+&lt;/div>
+&lt;div id="paginator">
+ &lt;button id="prev">&amp;lt;-&lt;/button>
+ &lt;button id="next">->&lt;/button>
+ &amp;nbsp; &amp;nbsp;
+ &lt;span>Page: &lt;span id="page_num">&lt;/span> / &lt;span id="page_count">&lt;/span>&lt;/span>
+&lt;/div>
+
+&lt;script type="text/javascript">
+window.onload = function() {
+
+
+var url = 'https:\/\/raw.githubusercontent.com\/lfkdsk\/picx-images-hosting\/master\/blog\/xianjian10\/xianjian.pdf'.startsWith("http") ? 'https:\/\/raw.githubusercontent.com\/lfkdsk\/picx-images-hosting\/master\/blog\/xianjian10\/xianjian.pdf' : "https:\/\/blog.lfkdsk.org\/" + 'https:\/\/raw.githubusercontent.com\/lfkdsk\/picx-images-hosting\/master\/blog\/xianjian10\/xianjian.pdf';
+
+var hidePaginator = "" === "true";
+var hideLoader = "" === "true";
+var selectedPageNum = parseInt("") || 1;
+
+
+var pdfjsLib = window['pdfjs-dist/build/pdf'];
+
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https:\/\/blog.lfkdsk.org\/" + '/js/pdf-js/build/pdf.worker.js';
+
+
+var pdfDoc = null,
+ pageNum = selectedPageNum,
+ pageRendering = false,
+ pageNumPending = null,
+ scale = 3,
+ canvas = document.getElementById('the-canvas'),
+ ctx = canvas.getContext('2d'),
+ paginator = document.getElementById("paginator"),
+ loadingWrapper = document.getElementById('loadingWrapper');
+
+
+
+showPaginator();
+showLoader();
+
+
+
+function renderPage(num) {
+ pageRendering = true;
+ 
+ pdfDoc.getPage(num).then(function(page) {
+ var viewport = page.getViewport({scale: scale});
+ canvas.height = viewport.height;
+ canvas.width = viewport.width;
+
+ 
+ var renderContext = {
+ canvasContext: ctx,
+ viewport: viewport
+ };
+ var renderTask = page.render(renderContext);
+
+ 
+ renderTask.promise.then(function() {
+ pageRendering = false;
+ showContent();
+ 
+ if (pageNumPending !== null) {
+ 
+ renderPage(pageNumPending);
+ pageNumPending = null;
+ }
+ });
+ });
+
+ 
+ document.getElementById('page_num').textContent = num;
+}
+
+
+
+function showContent() {
+ loadingWrapper.style.display = 'none';
+ canvas.style.display = 'block';
+}
+
+
+
+function showLoader() {
+ if(hideLoader) return
+ loadingWrapper.style.display = 'flex';
+ canvas.style.display = 'none';
+}
+
+
+
+function showPaginator() {
+ if(hidePaginator) return
+ paginator.style.display = 'block';
+}
+
+
+
+function queueRenderPage(num) {
+ if (pageRendering) {
+ pageNumPending = num;
+ } else {
+ renderPage(num);
+ }
+}
+
+
+
+function onPrevPage() {
+ if (pageNum &lt;= 1) {
+ return;
+ }
+ pageNum--;
+ queueRenderPage(pageNum);
+}
+document.getElementById('prev').addEventListener('click', onPrevPage);
+
+
+
+function onNextPage() {
+ if (pageNum >= pdfDoc.numPages) {
+ return;
+ }
+ pageNum++;
+ queueRenderPage(pageNum);
+}
+document.getElementById('next').addEventListener('click', onNextPage);
+
+
+
+pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+ pdfDoc = pdfDoc_;
+ var numPages = pdfDoc.numPages;
+ document.getElementById('page_count').textContent = numPages;
+ 
+ 
+ if(pageNum > numPages) {
+ pageNum = numPages
+ }
+
+ 
+ renderPage(pageNum);
+});
+}
+
+&lt;/script>
+
+&lt;br/></description></item></channel></rss>

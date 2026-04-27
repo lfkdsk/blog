@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="Hugo 0.140.2" name="generator"/><meta content="IE=edge" http-equiv="X-UA-Compatible"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="Intra-Mind Traveler" name="author"/><meta content="https://blog.lfkdsk.org/make-new-language-2/" property="og:url"/><link href="https://blog.lfkdsk.org/make-new-language-2/" rel="canonical"/><link href="./img/favicon.ico" rel="apple-touch-icon"/><link href="./img/favicon.ico" rel="icon"/><link href="./img/favicon.ico" rel="shortcut"/><script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/blog.lfkdsk.org\/"},"articleSection":"","name":"学习制作一门有趣的编程语言－0x02","headline":"学习制作一门有趣的编程语言－0x02","description":"\u003cblockquote\u003e\n\u003cp\u003e\u003ccode\u003e博客地址\u003c\/code\u003e： \u003ca href=\u0022http:\/\/lfkdsk.github.io\u0022\u003ehttp:\/\/lfkdsk.github.io\u003c\/a\u003e\u003cbr\u003e\n\u003ccode\u003e代码地址\u003c\/code\u003e： \u003ca href=\u0022https:\/\/github.com\/lfkdsk\/CodeParse\u0022\u003ehttps:\/\/github.com\/lfkdsk\/CodeParse\u003c\/a\u003e\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003ch3 id=\u0022为计算器添加一些新功能\u0022\u003e为计算器添加一些新功能\u003c\/h3\u003e\n\u003cblockquote\u003e\n\u003cp\u003e\u003ccode\u003e本节代码\u003c\/code\u003e：\u003ca href=\u0022https:\/\/github.com\/lfkdsk\/CodeParse\/tree\/master\/make_new_language_demo\/calc_with_table\u0022\u003eCalcWithTable\u003c\/a\u003e\u003c\/p\u003e\n\u003c\/blockquote\u003e\n\u003cp\u003e上次我们使用Lex \u0026amp; Yacc制作了一个能够处理优先级的计算器，其中的优先级的设定是通过修改文法\n，将优先级提升，这次重写这个计算器并添加一些新的功能。\u003c\/p\u003e\n\u003ch4 id=\u0022先看lex文件\u0022\u003e先看Lex文件\u003c\/h4\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;\u0022\u003e\u003ccode class=\u0022language-C\u0022 data-lang=\u0022C\u0022\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e%\u003c\/span\u003e{\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e#include\u003c\/span\u003e \u003cspan style=\u0022color:#75715e\u0022\u003e\u0026#34;y.tab.h\u0026#34;\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e#include\u003c\/span\u003e \u003cspan style=\u0022color:#75715e\u0022\u003e\u0026lt;math.h\u0026gt;\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e#include\u003c\/span\u003e \u003cspan style=\u0022color:#75715e\u0022\u003e\u0026#34;link_list.h\u0026#34;\u003c\/span\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\u003cspan style=\u0022color:#75715e\u0022\u003e\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e%\u003c\/span\u003e}\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e%%\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/* 这段正则和之前都有所不同 明显的增加了对于科学技术法的支持 *\/\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e([\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e-\u003c\/span\u003e\u003cspan style=\u0022color:#ae81ff\u0022\u003e9\u003c\/span\u003e]\u003cspan style=\u0022color:#f92672\u0022\u003e\u002b|\u003c\/span\u003e([\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e-\u003c\/span\u003e\u003cspan style=\u0022color:#ae81ff\u0022\u003e9\u003c\/span\u003e]\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e\\\u003c\/span\u003e.[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e-\u003c\/span\u003e\u003cspan style=\u0022color:#ae81ff\u0022\u003e9\u003c\/span\u003e]\u003cspan style=\u0022color:#f92672\u0022\u003e\u002b\u003c\/span\u003e)([eE][\u003cspan style=\u0022color:#f92672\u0022\u003e-\u002b\u003c\/span\u003e]\u003cspan style=\u0022color:#f92672\u0022\u003e?\u003c\/span\u003e[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e-\u003c\/span\u003e\u003cspan style=\u0022color:#ae81ff\u0022\u003e9\u003c\/span\u003e]\u003cspan style=\u0022color:#f92672\u0022\u003e\u002b\u003c\/span\u003e)\u003cspan style=\u0022color:#f92672\u0022\u003e?\u003c\/span\u003e) {\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\t\t  \u003cspan style=\u0022color:#75715e\u0022\u003e\/* 转换为double类型 *\/\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e          yylval.dval \u003cspan style=\u0022color:#f92672\u0022\u003e=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eatof\u003c\/span\u003e(yytext);\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e          \u003cspan style=\u0022color:#75715e\u0022\u003e\/* 我把它打印出来 *\/\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e          \u003cspan style=\u0022color:#a6e22e\u0022\u003eprintf\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;number : %s \u003c\/span\u003e\u003cspan style=\u0022color:#ae81ff\u0022\u003e\\n\u003c\/span\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;\u003c\/span\u003e, yytext);\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e          \u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e NUMBER;\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e    }\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e[ \u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e\\\u003c\/span\u003et] ;\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\t\u003cspan style=\u0022color:#75715e\u0022\u003e\/* 这里提供了对于字母和字母组合的识别 这是对于变量名的识别匹配 *\/\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e[A\u003cspan style=\u0022color:#f92672\u0022\u003e-\u003c\/span\u003eZa\u003cspan style=\u0022color:#f92672\u0022\u003e-\u003c\/span\u003ez][A\u003cspan style=\u0022color:#f92672\u0022\u003e-\u003c\/span\u003eZa\u003cspan style=\u0022color:#f92672\u0022\u003e-\u003c\/span\u003ez0\u003cspan style=\u0022color:#f92672\u0022\u003e-\u003c\/span\u003e\u003cspan style=\u0022color:#ae81ff\u0022\u003e9\u003c\/span\u003e]\u003cspan style=\u0022color:#f92672\u0022\u003e*\u003c\/span\u003e {\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\t\t  \u003cspan style=\u0022color:#75715e\u0022\u003e\/* addNode(char *)是link_list.c中的函数 将变量名和对应的参数存储在一个链表中 *\/\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\t\t  \u003cspan style=\u0022color:#75715e\u0022\u003e\/* 返回值为对应的指针 *\/\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e          yylval.name \u003cspan style=\u0022color:#f92672\u0022\u003e=\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eaddNode\u003c\/span\u003e(yytext);\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e          \u003cspan style=\u0022color:#a6e22e\u0022\u003eprintLink\u003c\/span\u003e();\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e          \u003cspan style=\u0022color:#75715e\u0022\u003e\/* 返回的Token指变量名 *\/\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e          \u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e NAME;\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e      }\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;$\u0026#34;\u003c\/span\u003e   {\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e          \u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e \u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e;\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e      }\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\u003cspan style=\u0022color:#960050;background-color:#1e0010\u0022\u003e\\\u003c\/span\u003en    \u003cspan style=\u0022color:#f92672\u0022\u003e|\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e.     {\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e            \u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e yytext[\u003cspan style=\u0022color:#ae81ff\u0022\u003e0\u003c\/span\u003e];\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e      }\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\u003cspan style=\u0022color:#f92672\u0022\u003e%%\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e这段代码和之前的区别不大，但是我们明显的为它增加了一个功能，就是识别变量名。\u003c\/p\u003e","inLanguage":"en-US","author":"Intra-Mind Traveler","creator":"Intra-Mind Traveler","publisher":"Intra-Mind Traveler","accountablePerson":"Intra-Mind Traveler","copyrightHolder":"Intra-Mind Traveler","copyrightYear":"2016","datePublished":"2016-06-01 12:13:17 \u002b0000 UTC","dateModified":"2016-06-01 12:13:17 \u002b0000 UTC","url":"https:\/\/blog.lfkdsk.org\/make-new-language-2\/","keywords":["编程语言","Blog","lfkdsk's Blog","lfkdsk","刘丰恺"]}</script><title>学习制作一门有趣的编程语言－0x02 - lfkdsk's Blog</title>
+<meta content="学习制作一门有趣的编程语言－0x02 - lfkdsk's Blog" property="og:title"/><meta content="article" property="og:type"/><meta content='
+博客地址： http://lfkdsk.github.io
+代码地址： https://github.com/lfkdsk/CodeParse
+
+为计算器添加一些新功能
+
+本节代码：CalcWithTable
+
+上次我们使用Lex &amp; Yacc制作了一个能够处理优先级的计算器，其中的优先级的设定是通过修改文法
+，将优先级提升，这次重写这个计算器并添加一些新的功能。
+先看Lex文件
+
+%{
+
+#include "y.tab.h"
+#include &lt;math.h&gt;
+#include "link_list.h"
+
+%}
+
+%%
+	/* 这段正则和之前都有所不同 明显的增加了对于科学技术法的支持 */
+([0-9]+|([0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?) {
+		  /* 转换为double类型 */
+          yylval.dval = atof(yytext);
+          /* 我把它打印出来 */
+          printf("number : %s \n", yytext);
+          return NUMBER;
+    }
+
+[ \t] ;
+
+	/* 这里提供了对于字母和字母组合的识别 这是对于变量名的识别匹配 */
+[A-Za-z][A-Za-z0-9]* {
+		  /* addNode(char *)是link_list.c中的函数 将变量名和对应的参数存储在一个链表中 */
+		  /* 返回值为对应的指针 */
+          yylval.name = addNode(yytext);
+          printLink();
+          /* 返回的Token指变量名 */
+          return NAME;
+      }
+
+"$"   {
+          return 0;
+      }
+
+\n    |
+
+.     {
+            return yytext[0];
+      }
+
+%%
+这段代码和之前的区别不大，但是我们明显的为它增加了一个功能，就是识别变量名。' name="description"/><link href="https://fonts.googleapis.com/css?family=Arvo|Permanent+Marker" rel="stylesheet"/><link href="https://unpkg.com/flexboxgrid@6.3.1/dist/flexboxgrid.min.css" rel="stylesheet"/><link href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/2.10.0/github-markdown.min.css" rel="stylesheet"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/androidstudio.min.css" rel="stylesheet"/><link href="/css/paper.css" rel="stylesheet"/><link href="/css/index.css" rel="stylesheet"/><link href="/index.xml" rel="alternate" title="lfkdsk's Blog" type="application/rss+xml"/><link href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css?family=Bree+Serif|Bungee+Shade" rel="stylesheet"/><script>(function(){}).call("object"==typeof window&&window||"object"==typeof self&&self||"object"==typeof global&&global||{})</script><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-8TMSDJG47Q"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8TMSDJG47Q")</script></head><body><article class="post Chinese" id="article"><div class="row"><div class="paper col-xs-12 col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2"><a href="/"><div class="head-line"></div></a><header class="post-header"><h1 class="post-title">学习制作一门有趣的编程语言－0x02</h1><div class="row"><div class="col-xs-6"><time class="post-date" datetime="2016-06-01 12:13:17 UTC">01 Jun 2016</time></div><div class="col-xs-6"><div class="post-author"><a href="https://blog.lfkdsk.org/" target="_blank">@Intra-Mind Traveler</a></div></div></div></header><div class="post-content markdown-body"><blockquote><p><code>博客地址</code>： <a href="http://lfkdsk.github.io">http://lfkdsk.github.io</a><br/><code>代码地址</code>： <a href="https://github.com/lfkdsk/CodeParse">https://github.com/lfkdsk/CodeParse</a></p></blockquote><h3 id="为计算器添加一些新功能">为计算器添加一些新功能</h3><blockquote><p><code>本节代码</code>：<a href="https://github.com/lfkdsk/CodeParse/tree/master/make_new_language_demo/calc_with_table">CalcWithTable</a></p></blockquote><p>上次我们使用Lex &amp; Yacc制作了一个能够处理优先级的计算器，其中的优先级的设定是通过修改文法
+，将优先级提升，这次重写这个计算器并添加一些新的功能。</p><h4 id="先看lex文件">先看Lex文件</h4><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-C" data-lang="C"><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%</span>{
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">"y.tab.h"</span><span style="color:#75715e">
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;math.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">"link_list.h"</span><span style="color:#75715e">
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%</span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%%</span>
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">/* 这段正则和之前都有所不同 明显的增加了对于科学技术法的支持 */</span>
+</span></span><span style="display:flex"><span>([<span style="color:#ae81ff">0</span><span style="color:#f92672">-</span><span style="color:#ae81ff">9</span>]<span style="color:#f92672">+|</span>([<span style="color:#ae81ff">0</span><span style="color:#f92672">-</span><span style="color:#ae81ff">9</span>]<span style="color:#f92672">*</span><span style="color:#960050;background-color:#1e0010">\</span>.[<span style="color:#ae81ff">0</span><span style="color:#f92672">-</span><span style="color:#ae81ff">9</span>]<span style="color:#f92672">+</span>)([eE][<span style="color:#f92672">-+</span>]<span style="color:#f92672">?</span>[<span style="color:#ae81ff">0</span><span style="color:#f92672">-</span><span style="color:#ae81ff">9</span>]<span style="color:#f92672">+</span>)<span style="color:#f92672">?</span>) {
+</span></span><span style="display:flex"><span>		  <span style="color:#75715e">/* 转换为double类型 */</span>
+</span></span><span style="display:flex"><span>          yylval.dval <span style="color:#f92672">=</span> <span style="color:#a6e22e">atof</span>(yytext);
+</span></span><span style="display:flex"><span>          <span style="color:#75715e">/* 我把它打印出来 */</span>
+</span></span><span style="display:flex"><span>          <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">"number : %s </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">"</span>, yytext);
+</span></span><span style="display:flex"><span>          <span style="color:#66d9ef">return</span> NUMBER;
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>[ <span style="color:#960050;background-color:#1e0010">\</span>t] ;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">/* 这里提供了对于字母和字母组合的识别 这是对于变量名的识别匹配 */</span>
+</span></span><span style="display:flex"><span>[A<span style="color:#f92672">-</span>Za<span style="color:#f92672">-</span>z][A<span style="color:#f92672">-</span>Za<span style="color:#f92672">-</span>z0<span style="color:#f92672">-</span><span style="color:#ae81ff">9</span>]<span style="color:#f92672">*</span> {
+</span></span><span style="display:flex"><span>		  <span style="color:#75715e">/* addNode(char *)是link_list.c中的函数 将变量名和对应的参数存储在一个链表中 */</span>
+</span></span><span style="display:flex"><span>		  <span style="color:#75715e">/* 返回值为对应的指针 */</span>
+</span></span><span style="display:flex"><span>          yylval.name <span style="color:#f92672">=</span> <span style="color:#a6e22e">addNode</span>(yytext);
+</span></span><span style="display:flex"><span>          <span style="color:#a6e22e">printLink</span>();
+</span></span><span style="display:flex"><span>          <span style="color:#75715e">/* 返回的Token指变量名 */</span>
+</span></span><span style="display:flex"><span>          <span style="color:#66d9ef">return</span> NAME;
+</span></span><span style="display:flex"><span>      }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#e6db74">"$"</span>   {
+</span></span><span style="display:flex"><span>          <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex"><span>      }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#960050;background-color:#1e0010">\</span>n    <span style="color:#f92672">|</span>
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>.     {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">return</span> yytext[<span style="color:#ae81ff">0</span>];
+</span></span><span style="display:flex"><span>      }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%%</span>
+</span></span></code></pre></div><p>这段代码和之前的区别不大，但是我们明显的为它增加了一个功能，就是识别变量名。</p><h4 id="在看yacc">在看yacc：</h4><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-C" data-lang="C"><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%</span>{
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">"link_list.h"</span><span style="color:#75715e">
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> yydebug<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;math.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%</span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%</span><span style="color:#66d9ef">union</span>{
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">double</span> dval;
+</span></span><span style="display:flex"><span>    <span style="color:#75715e">/* 存储的类型变了 存储的是一个symtable类型的结构体指针 */</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">struct</span> symtable <span style="color:#f92672">*</span>name;
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">/* 声明了两个Token 指针类型的NAME double类型的NUMBER */</span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%</span>token <span style="color:#f92672">&lt;</span>name<span style="color:#f92672">&gt;</span> NAME
+</span></span><span style="display:flex"><span><span style="color:#f92672">%</span>token <span style="color:#f92672">&lt;</span>dval<span style="color:#f92672">&gt;</span> NUMBER
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">/* 这里强行指定了左结合以及优先性 */</span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%</span>left <span style="color:#e6db74">'-'</span> <span style="color:#e6db74">'+'</span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%</span>left <span style="color:#e6db74">'*'</span> <span style="color:#e6db74">'/'</span>
+</span></span><span style="display:flex"><span>	<span style="color:#75715e">/* 为一元减号设置了最高的优先级 */</span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%</span>nonassoc UMINUS
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%</span>type <span style="color:#f92672">&lt;</span>dval<span style="color:#f92672">&gt;</span> expression
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%%</span>
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>stament_list: stament <span style="color:#e6db74">'\n'</span>
+</span></span><span style="display:flex"><span>            <span style="color:#f92672">|</span> stament_list stament <span style="color:#e6db74">'\n'</span>
+</span></span><span style="display:flex"><span>            ;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#75715e">/* 增加了一个规则处理变量名赋值 */</span>
+</span></span><span style="display:flex"><span>stament: NAME <span style="color:#e6db74">'='</span> expression { <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span><span style="color:#f92672">-&gt;</span>value <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">3</span>; }
+</span></span><span style="display:flex"><span>       <span style="color:#f92672">|</span> expression { <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">"= %g </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">"</span>, <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span>); }
+</span></span><span style="display:flex"><span>       ;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>expression: expression <span style="color:#e6db74">'+'</span> expression { <span style="color:#960050;background-color:#1e0010">$$</span> <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">+</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">3</span>; }
+</span></span><span style="display:flex"><span>          <span style="color:#f92672">|</span> expression <span style="color:#e6db74">'-'</span> expression { <span style="color:#960050;background-color:#1e0010">$$</span> <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">-</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">3</span>; }
+</span></span><span style="display:flex"><span>          <span style="color:#f92672">|</span> expression <span style="color:#e6db74">'*'</span> expression { <span style="color:#960050;background-color:#1e0010">$$</span> <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">*</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">3</span>; }
+</span></span><span style="display:flex"><span>          <span style="color:#f92672">|</span> expression <span style="color:#e6db74">'/'</span> expression {
+</span></span><span style="display:flex"><span>              <span style="color:#66d9ef">if</span>(<span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">3</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0.0</span>){
+</span></span><span style="display:flex"><span>                  <span style="color:#a6e22e">yyerror</span>(<span style="color:#e6db74">"devide by zero"</span>);
+</span></span><span style="display:flex"><span>              }<span style="color:#66d9ef">else</span>{
+</span></span><span style="display:flex"><span>                  <span style="color:#960050;background-color:#1e0010">$$</span> <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">/</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">3</span>;
+</span></span><span style="display:flex"><span>              }
+</span></span><span style="display:flex"><span>          }
+</span></span><span style="display:flex"><span>          		<span style="color:#75715e">/* 这里再只有一元建好操作符的时候强制使用UMINUS的结合性 */</span>
+</span></span><span style="display:flex"><span>          <span style="color:#f92672">|</span> <span style="color:#e6db74">'-'</span> expression <span style="color:#f92672">%</span>prec UMINUS { <span style="color:#960050;background-color:#1e0010">$$</span> <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">2</span>; }
+</span></span><span style="display:flex"><span>          <span style="color:#f92672">|</span> <span style="color:#e6db74">'('</span> expression <span style="color:#e6db74">')'</span> { <span style="color:#960050;background-color:#1e0010">$$</span> <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">2</span>; }
+</span></span><span style="display:flex"><span>          <span style="color:#f92672">|</span> NUMBER
+</span></span><span style="display:flex"><span>          		<span style="color:#75715e">/* 当出现变量名的时候 把变量名对应的值返回 */</span>
+</span></span><span style="display:flex"><span>          <span style="color:#f92672">|</span> NAME   { <span style="color:#960050;background-color:#1e0010">$$</span> <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span><span style="color:#f92672">-&gt;</span>value; }
+</span></span><span style="display:flex"><span>          		<span style="color:#75715e">/* 这也是新功能 计算器支持使用内置函数 当变量名存在函数指针的时候 */</span>
+</span></span><span style="display:flex"><span>          		<span style="color:#75715e">/* 将其作为函数处理 */</span>
+</span></span><span style="display:flex"><span>          <span style="color:#f92672">|</span> NAME <span style="color:#e6db74">'('</span> expression <span style="color:#e6db74">')'</span> {
+</span></span><span style="display:flex"><span>              <span style="color:#66d9ef">if</span> (<span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span><span style="color:#f92672">-&gt;</span>funcptr)
+</span></span><span style="display:flex"><span>              {
+</span></span><span style="display:flex"><span>                <span style="color:#960050;background-color:#1e0010">$$</span> <span style="color:#f92672">=</span> (<span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span><span style="color:#f92672">-&gt;</span>funcptr)(<span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">3</span>);
+</span></span><span style="display:flex"><span>              }<span style="color:#66d9ef">else</span>{
+</span></span><span style="display:flex"><span>                <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">"%s is not a function </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">"</span>, <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span><span style="color:#f92672">-&gt;</span>name);
+</span></span><span style="display:flex"><span>                <span style="color:#960050;background-color:#1e0010">$$</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.0</span>;
+</span></span><span style="display:flex"><span>              }
+</span></span><span style="display:flex"><span>          }
+</span></span><span style="display:flex"><span>          ;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#f92672">%%</span>
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(){
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">sqrt</span>(), <span style="color:#a6e22e">exp</span>(), <span style="color:#a6e22e">log</span>();
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#75715e">/* 现在无法动下的生成函数 所以只能添加内置的几种函数 */</span>
+</span></span><span style="display:flex"><span>    <span style="color:#a6e22e">addFunction</span>(<span style="color:#e6db74">"sqrt"</span>, sqrt);
+</span></span><span style="display:flex"><span>    <span style="color:#a6e22e">addFunction</span>(<span style="color:#e6db74">"exp"</span>,exp);
+</span></span><span style="display:flex"><span>    <span style="color:#a6e22e">addFunction</span>(<span style="color:#e6db74">"log"</span>,log);
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#a6e22e">yyparse</span>();
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>现在的yacc文件中我们支持了变量名的申请，和函数的调用，这里面我们的函数都来自于<code>link_list.h</code>中的定义</p><h4 id="link_listh-"><code>link_list.h</code> :</h4><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-C" data-lang="C"><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#75715e">#ifndef SYMBOL
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> symtable {
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">/* data */</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>name;
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">double</span> value;
+</span></span><span style="display:flex"><span>    <span style="color:#75715e">/* 函数指针 */</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">double</span> (<span style="color:#f92672">*</span>funcptr)();
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">struct</span> symtable <span style="color:#f92672">*</span>next;
+</span></span><span style="display:flex"><span>};
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">struct</span> symtable<span style="color:#f92672">*</span> <span style="color:#a6e22e">addNode</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>symbol);
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">printLink</span>();
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">addFunction</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>name, <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">func</span>());
+</span></span><span style="display:flex"><span><span style="color:#75715e">#endif
+</span></span></span></code></pre></div><h4 id="link_listc-"><code>link_list.c</code> :</h4><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-C" data-lang="C"><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">"link_list.h"</span><span style="color:#75715e">
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">struct</span> symtable <span style="color:#f92672">*</span>head <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">int</span> flag <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">struct</span> symtable<span style="color:#f92672">*</span> <span style="color:#a6e22e">addNode</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>symbol){
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">if</span> (flag <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex"><span>        flag <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex"><span>        head <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> symtable<span style="color:#f92672">*</span>)<span style="color:#a6e22e">malloc</span>(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">struct</span> symtable));
+</span></span><span style="display:flex"><span>        head<span style="color:#f92672">-&gt;</span>name <span style="color:#f92672">=</span> <span style="color:#a6e22e">strdup</span>(symbol);
+</span></span><span style="display:flex"><span>        head<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> head;
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">struct</span> symtable <span style="color:#f92672">*</span>sp <span style="color:#f92672">=</span> head;
+</span></span><span style="display:flex"><span>    
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">while</span> (sp <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (sp<span style="color:#f92672">-&gt;</span>name <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">strcmp</span>(sp<span style="color:#f92672">-&gt;</span>name, symbol)) {
+</span></span><span style="display:flex"><span>          <span style="color:#75715e">/*  找到一样的了 */</span>
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">return</span> sp;
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>sp<span style="color:#f92672">-&gt;</span>name) {
+</span></span><span style="display:flex"><span>            sp<span style="color:#f92672">-&gt;</span>name <span style="color:#f92672">=</span> <span style="color:#a6e22e">strdup</span>(symbol);
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">return</span> sp;
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        sp <span style="color:#f92672">=</span> sp<span style="color:#f92672">-&gt;</span>next;
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>    
+</span></span><span style="display:flex"><span>    sp <span style="color:#f92672">=</span> head;
+</span></span><span style="display:flex"><span>    
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">while</span> (sp<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex"><span>        sp <span style="color:#f92672">=</span> sp<span style="color:#f92672">-&gt;</span>next;
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">struct</span> symtable <span style="color:#f92672">*</span>tail;
+</span></span><span style="display:flex"><span>    tail <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> symtable<span style="color:#f92672">*</span>)<span style="color:#a6e22e">malloc</span>(<span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">struct</span> symtable));
+</span></span><span style="display:flex"><span>    tail<span style="color:#f92672">-&gt;</span>name <span style="color:#f92672">=</span> <span style="color:#a6e22e">strdup</span>(symbol);
+</span></span><span style="display:flex"><span>    tail<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex"><span>    sp<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> tail;
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">return</span> tail;
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">printLink</span>(){
+</span></span><span style="display:flex"><span>  <span style="color:#66d9ef">struct</span> symtable<span style="color:#f92672">*</span> sp <span style="color:#f92672">=</span> head;
+</span></span><span style="display:flex"><span>  <span style="color:#66d9ef">while</span> (sp <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">"name : %s index : %p value : %f </span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">"</span>, sp<span style="color:#f92672">-&gt;</span>name, sp, sp<span style="color:#f92672">-&gt;</span>value);
+</span></span><span style="display:flex"><span>      sp <span style="color:#f92672">=</span> sp<span style="color:#f92672">-&gt;</span>next;
+</span></span><span style="display:flex"><span>  }
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">addFunction</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>name, <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">func</span>()){
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">struct</span> symtable<span style="color:#f92672">*</span> sp <span style="color:#f92672">=</span> <span style="color:#a6e22e">addNode</span>(name);
+</span></span><span style="display:flex"><span>    sp<span style="color:#f92672">-&gt;</span>funcptr <span style="color:#f92672">=</span> func;
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>至此我们的计算器就能支持参数名和内置函数了。</p><h4 id="我们来写一下makefile文件">我们来写一下makefile文件:</h4><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-makefile" data-lang="makefile"><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#a6e22e">ex_calc</span><span style="color:#f92672">:</span> y.tab.o lex.yy.o link_list.o
+</span></span><span style="display:flex"><span>	$ cc -o ex_calc link_list.c y.tab.c lex.yy.c -ly -ll
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#a6e22e">link_list.o</span><span style="color:#f92672">:</span> link_list.c link_list.h
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#a6e22e">lex.yy.o</span><span style="color:#f92672">:</span> lex.yy.c y.tab.h
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#a6e22e">lex.yy.o y.tab.o</span><span style="color:#f92672">:</span> link_list.h
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#a6e22e">y.tab.c y.tab.h</span><span style="color:#f92672">:</span> ex_calc.y
+</span></span><span style="display:flex"><span>			$ yacc -d ex_calc.y
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#a6e22e">lex.yy.c</span><span style="color:#f92672">:</span> ex_calc.l
+</span></span><span style="display:flex"><span>	$ lex ex_calc.l
+</span></span></code></pre></div><p>之后使用make命令编译运行，就可以正常使用了。</p><p><img alt="calc_page" src="/make-new-language-2/calc_page.png"/></p></div><p>Subscribe：<a href="https://blog.lfkdsk.org/index.xml" target="_blank">lfkdsk's Blog</a></p><div style="height:50px"></div><div class="post-comments"><div id="disqus_thread"></div><script>window.addEventListener("load",()=>{(function(){var e=document,t=e.createElement("script");t.src="https://lfkdsk.disqus.com/embed.js",t.setAttribute("data-timestamp",+new Date),(e.head||e.body).appendChild(t)})()})</script><noscript>Please enable JavaScript to view the
+<a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div></div></div></article><script src="/js/highlight.pack.js"></script><script src="https://unpkg.com/quicklink@0.1.1/dist/quicklink.umd.js"></script><script>hljs.initHighlightingOnLoad();var posts=document.getElementById("posts-list");posts&&quicklink({el:posts,priority:!0})</script></body></html>

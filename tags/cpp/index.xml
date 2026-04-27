@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cpp on lfkdsk's Blog</title><link>https://blog.lfkdsk.org/tags/cpp/</link><description>Recent content in Cpp on lfkdsk's Blog</description><generator>Hugo</generator><language>cn</language><lastBuildDate>Mon, 12 Dec 2016 15:27:51 +0000</lastBuildDate><atom:link href="https://blog.lfkdsk.org/tags/cpp/index.xml" rel="self" type="application/rss+xml"/><item><title>Effective CPP 学习笔记</title><link>https://blog.lfkdsk.org/eff-cpp-tips/</link><pubDate>Mon, 12 Dec 2016 15:27:51 +0000</pubDate><guid>https://blog.lfkdsk.org/eff-cpp-tips/</guid><description>&lt;blockquote>
+&lt;p>Effective CPP 学习笔记&lt;/p>
+&lt;/blockquote>
+&lt;h3 id="1cpp-是一个语言联邦">1.Cpp 是一个语言联邦&lt;/h3>
+&lt;h3 id="2以constenuminline替换--define">2.以const，enum，inline替换 #define&lt;/h3>
+&lt;p>预处理器会带来诸多问题，但还是有很大的用途，所以这条仅适用于能用以上三种的情况。&lt;/p>
+&lt;h3 id="3尽可能使用const">3.尽可能使用const&lt;/h3>
+&lt;p>high-level const ：从右至左的第一个const (* 右边 指针自身是const)&lt;/p>
+&lt;p>low-level const ：从右向左看的第二个const(* 左边 指针所指对象是const)&lt;/p>
+&lt;p>const成员函数：const的成员函数中是不能对类本身进行改变的所以说是bitwish的，mutable可解决这个问题。&lt;/p>
+&lt;p>使用const成员函数调用重载的non-const函数:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-c++" data-lang="c++">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">char&lt;/span> &lt;span style="color:#f92672">&amp;amp;&lt;/span> operand[] (std&lt;span style="color:#f92672">::&lt;/span>size_t position){
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> &lt;span style="color:#66d9ef">const_cast&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">char&lt;/span>&lt;span style="color:#f92672">&amp;amp;&amp;gt;&lt;/span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static_cast&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>&lt;span style="color:#66d9ef">const&lt;/span> TextBlock&lt;span style="color:#f92672">&amp;amp;&amp;gt;&lt;/span>(&lt;span style="color:#f92672">*&lt;/span>&lt;span style="color:#66d9ef">this&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> [position];
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="4保证使用前初始化">4.保证使用前初始化&lt;/h3>
+&lt;p>对inner type 和object都要在使用前初始化。&lt;/p>
+&lt;p>使用initializer-list对类进行初始化，而不是适用赋值操作。&lt;/p>
+&lt;p>跨单元编译的时候应该使用local static 替换 non-local static否则会出现初始化次序的问题。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-c++" data-lang="c++">&lt;span style="display:flex;">&lt;span>FileSystem &lt;span style="color:#f92672">&amp;amp;&lt;/span> tfs(){
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">static&lt;/span> FileSystem fs;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> fs;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="5编译器的自动构造">5.编译器的自动构造&lt;/h3>
+&lt;p>default-constructor | copy-constructor | copy assignment&lt;/p>
+&lt;h3 id="6明确拒绝不需要的自动构造">6.明确拒绝不需要的自动构造&lt;/h3>
+&lt;p>将不需要的函数private化，或者使用一个private的base class&lt;/p>
+&lt;h3 id="7virtual-析构函数">7.virtual 析构函数&lt;/h3>
+&lt;blockquote>
+&lt;p>这节的说法有点奇怪，其实重点在于通过base class 的指针删除derived class object 时如果base class存在non-virtual 析构函数，就会导致derived data 删除错误，就是这个原因而已。&lt;/p></description></item></channel></rss>
