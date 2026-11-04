@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Android on lfkdsk's Blog</title><link>https://blog.lfkdsk.org/tags/android/</link><description>Recent content in Android on lfkdsk's Blog</description><generator>Hugo</generator><language>cn</language><lastBuildDate>Tue, 06 Sep 2016 07:57:49 +0000</lastBuildDate><atom:link href="https://blog.lfkdsk.org/tags/android/index.xml" rel="self" type="application/rss+xml"/><item><title>MVP In Android</title><link>https://blog.lfkdsk.org/mvpinandroid/</link><pubDate>Tue, 06 Sep 2016 07:57:49 +0000</pubDate><guid>https://blog.lfkdsk.org/mvpinandroid/</guid><description>&lt;p>众所周知，Android的设计架构一直为人所诟病，模块的分割不清，很容易造成新手的困惑和迷茫，并且写出来的代码非常混杂，Activity即包含UI的处理，还包括数据的具体处理，让一个Activity弄出好几千行的容量，而且代码非常不清晰，可读性比较差。&lt;/p>
+&lt;p>所以在Android的开发过程中，一直没有一个统一的开发模式，MVC、MVP、MVVM都有出现，不过之前Google在Github开源的一个开源库&lt;a href="https://github.com/googlesamples/android-architecture/tree/todo-mvp/">to-do-mvp&lt;/a> ，Google提供了他们对MVP的一个范式，我们一次为基础谈谈Android 的MVP的应用。&lt;/p>
+&lt;h2 id="what-is-mvp">What is MVP?&lt;/h2>
+&lt;p>MVP 指的是“models-views-presenters”的缩写，通过把逻辑操作和UI操作分离的方式，来让逻辑的结构更为清晰。Activity是一个通用的“God Object”什么都能放进去，导致了Android开发通常使用的是“models-views”的模式，仅仅把数据层单独的分离了出来，导致了逻辑操作放在了Activity里面。&lt;/p>
+&lt;p>MVP中的Presenter代理类是对MVC模式中Controller的一种更新，通过代理类和UI对象的绑定来实现逻辑操作的分离，View和Presenter可以互见，Model完全由Presenter操作，就是这种模式的核心理念。&lt;/p>
+&lt;h2 id="structure">Structure&lt;/h2>
+&lt;p>这里参照Google的官方推荐标准来讲解如何使用MVP的模式。&lt;/p>
+&lt;p>&lt;img src="https://blog.lfkdsk.org/mvpinandroid/mvp.png" alt="mvp">&lt;/p>
+&lt;p>按照MVP的设计模式，Model很清晰了就是我们抽象出来的数据模型，这个有的是只是Bean类型的数据模型，或者可以通过抽象接口来实现提供数据的Model模型，这个我认为都可以，看情况而定，有的时候过于拆分也会导致过度使用的问题出现。View类一般认为是Activity／Fragment这种和UI关联度高的控件。Presenter是抽象出来的代理类，处理逻辑问题。&lt;/p>
+&lt;p>如何将View和Presenter链接起来呢？我们使用了一个契约类的方式定义了View和Presenter的暴露接口。&lt;/p>
+&lt;h3 id="contract-interface">Contract Interface&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-java" data-lang="java">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">ExamArrangeContract&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">/**
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> * @link ExamArrange 考场安排
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"> */&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">interface&lt;/span> &lt;span style="color:#a6e22e">View&lt;/span> &lt;span style="color:#66d9ef">extends&lt;/span> BaseView&lt;span style="color:#f92672">&amp;lt;&lt;/span>Presenter&lt;span style="color:#f92672">&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">initialRecycler&lt;/span>(List&lt;span style="color:#f92672">&amp;lt;&lt;/span>ExamArrange&lt;span style="color:#f92672">&amp;gt;&lt;/span> arranges);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">notifyRefreshRecycler&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">stopRefresh&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">interface&lt;/span> &lt;span style="color:#a6e22e">Presenter&lt;/span> &lt;span style="color:#66d9ef">extends&lt;/span> BasePresenter {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">initialDataForRecycler&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">beginLoad&lt;/span>(PtrFrameLayout frame);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">loadMore&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>契约类大多是形如以上代码的形式，重点定义了View和Presenter的暴露接口，里面定义了二者的职能。比如说View负责刷新RecyclerView的视图，Presenter负责给RecyclerView加载更多提供数据。&lt;/p>
+&lt;p>Activity／Fragment继承其中的View类，另外再定一个一个对Presenter的实现类就可以了。&lt;/p>
+&lt;h3 id="base-interface">Base Interface&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-java" data-lang="java">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">interface&lt;/span> &lt;span style="color:#a6e22e">BaseView&lt;/span>&lt;span style="color:#f92672">&amp;lt;&lt;/span>T&lt;span style="color:#f92672">&amp;gt;&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">setPresenter&lt;/span>(T presenter);
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Contract类里面View继承的BaseView只有一个方法，就是和数据绑定。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-java" data-lang="java">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">interface&lt;/span> &lt;span style="color:#a6e22e">BasePresenter&lt;/span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">start&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>另外Presenter的Base类中也只提供了一个&lt;code>start()&lt;/code>函数用作Presenter的启动函数。一般放在Activity的&lt;code>onStart()&lt;/code>或者是&lt;code>onResume()&lt;/code>就可以了。&lt;/p></description></item></channel></rss>

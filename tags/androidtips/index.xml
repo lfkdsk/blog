@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>AndroidTips on lfkdsk's Blog</title><link>https://blog.lfkdsk.org/tags/androidtips/</link><description>Recent content in AndroidTips on lfkdsk's Blog</description><generator>Hugo</generator><language>cn</language><lastBuildDate>Tue, 06 Sep 2016 19:32:07 +0000</lastBuildDate><atom:link href="https://blog.lfkdsk.org/tags/androidtips/index.xml" rel="self" type="application/rss+xml"/><item><title>从 View 源码学习点击事件的模拟</title><link>https://blog.lfkdsk.org/androidtips1/</link><pubDate>Tue, 06 Sep 2016 19:32:07 +0000</pubDate><guid>https://blog.lfkdsk.org/androidtips1/</guid><description>&lt;blockquote>
+&lt;p>作者：&lt;a href="https://github.com/lfkdsk">刘丰恺&lt;/a>&lt;/p>
+&lt;p>作者博客：&lt;a href="http://lfkdsk.github.io/">若梦浮生&lt;/a>&lt;/p>
+&lt;p>转载请注明文章来源&lt;/p>
+&lt;/blockquote>
+&lt;p>我们在开发自定义控件的时候经常会有这样的需求，一个控件既需要能够被拖拽，也需要能够被点击。其实这个需求有个矛盾之处，需要被拖拽就要复写&lt;code>onTouch(...)&lt;/code>函数，但是这样点击事件就被覆盖了，正常的 &lt;code>onClick()&lt;/code> / &lt;code>onLongClick()&lt;/code>事件是不能被响应的了。&lt;/p>
+&lt;p>现在面对这种情况GestureDetector，ViewDragHelper能为我们的开发提供一些便利，但是有的情况下这些封装的工具类没办法很好的满足我们的需求，这时候我们就需要自己来模拟View的点击事件。&lt;/p>
+&lt;p>模拟View点击事件说起来也很简单，说白了就是获取当前的点击未知的坐标值，和控件所在的矩形框的相对位置，并且保持了一段时间，这样我们就可以认为用户成功的进行了一次点击，调用View的&lt;code>callOnClick()&lt;/code>方法就可以了，这时View就可以正常的回调&lt;code>onClickListener()&lt;/code>了。&lt;/p>
+&lt;h3 id="bad-implemention">Bad Implemention&lt;/h3>
+&lt;p>我看过一些项目的不完美的实现方式，大概类似于这样的伪代码。&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-java" data-lang="java">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">int&lt;/span> x,y; &lt;span style="color:#66d9ef">long&lt;/span> time;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">public&lt;/span> &lt;span style="color:#66d9ef">void&lt;/span> &lt;span style="color:#a6e22e">onTouch&lt;/span>(view,event){
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// 伪代码&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> 	&lt;span style="color:#66d9ef">switch&lt;/span>(event.&lt;span style="color:#a6e22e">getAction&lt;/span>()){
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> DOWN:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> x &lt;span style="color:#f92672">=&lt;/span> event.&lt;span style="color:#a6e22e">getX&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> y &lt;span style="color:#f92672">=&lt;/span> event.&lt;span style="color:#a6e22e">getY&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> 
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> time &lt;span style="color:#f92672">=&lt;/span> getTime();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> 
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">break&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> UP:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// 超过一段较短时间 响应点击事件&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// 超过一段长时间 响应长按时间&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">if&lt;/span>(getTime() &lt;span style="color:#f92672">-&lt;/span> time &lt;span style="color:#f92672">&amp;gt;&lt;/span> 4
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// 判断x,y 移动的位置不超过一个阀值&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;amp;&amp;amp;&lt;/span> event.&lt;span style="color:#a6e22e">getX&lt;/span>() &lt;span style="color:#f92672">-&lt;/span> x...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> event.&lt;span style="color:#a6e22e">getY&lt;/span>() &lt;span style="color:#f92672">-&lt;/span> y ...){
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> 	view.&lt;span style="color:#a6e22e">callOnClick&lt;/span>();
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> or view.&lt;span style="color:#a6e22e">performOnLongClick&lt;/span>()
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">case&lt;/span> MOVE处理:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">// 处理拖动事件&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">break&lt;/span>;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> 	}
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>这份代码从原理上讲起时没什么问题，完全注意到了时间和位置，但是把对点击的判定完全的放在了&lt;code>onTouch()&lt;/code>的触点抬起的UP判定里，这就造成了你的点击必须在你抬手之后才能响应，正常的点按似乎问题，但是长按的话（只加长判定时间）就会造成需要抬起来才能判定长按。&lt;/p></description></item></channel></rss>

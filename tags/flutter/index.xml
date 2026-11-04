@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Flutter on lfkdsk's Blog</title><link>https://blog.lfkdsk.org/tags/flutter/</link><description>Recent content in Flutter on lfkdsk's Blog</description><generator>Hugo</generator><language>cn</language><lastBuildDate>Fri, 06 Mar 2020 15:09:37 +0800</lastBuildDate><atom:link href="https://blog.lfkdsk.org/tags/flutter/index.xml" rel="self" type="application/rss+xml"/><item><title>FlutterWeb 编译流程分析</title><link>https://blog.lfkdsk.org/flutter-for-web-compile/</link><pubDate>Fri, 06 Mar 2020 15:09:37 +0800</pubDate><guid>https://blog.lfkdsk.org/flutter-for-web-compile/</guid><description>&lt;p>&lt;strong>本篇文章你会学到&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Flutter Web 的编译流程&lt;/li>
+&lt;li>dart compiler 使用方案&lt;/li>
+&lt;li>compiler 模块实现分析（next chapter）&lt;/li>
+&lt;/ul>
+&lt;h2 id="前言">前言&lt;/h2>
+&lt;p>Flutter for Web 是 Flutter 框架在 Web 平台的支持方案，在很长一段时间一直是独立于 Flutter 主分支之外进行独立开发的，直到 19 年九月才合入主分支，目前仍在 Flutter 的 beta channel 之中（早期使用的案例可以我之前的调研报告、文章）。下图为 Flutter For Web 的实现方案，之前已经写过文章分析过了：&lt;/p>
+&lt;p>&lt;img src="https://blog.lfkdsk.org/flutter-for-web-compile/flutter-web.png" alt="web">&lt;/p>
+&lt;p>与之前 preview 版本较为复杂的配置流程（flutter 所有库都要切到 web branch 之中）不同，目前版本的 FlutterWeb 可以被融入了 &lt;code>flutter_tools&lt;/code> 处理流程之中了，并且 release 模式也能够提供完整的可独立运行的 dump 出的 web 程序。&lt;/p>
+&lt;blockquote>
+&lt;p>本篇文章我们就来分析 FlutterWeb 完整的编译处理流程，原本这篇文章也包含对 &lt;code>dart2js&lt;/code> 部分的实现分析，但是由于篇幅过长不太容易在有一篇文章之中解释清楚。因此打算单独开一个关于 &lt;code>Dart&lt;/code> 编译器设计的系列文章，从内部 &lt;code>kernel&lt;/code> 出发到，前端的 &lt;code>front_end&lt;/code> 的实现，&lt;code>compiler&lt;/code> 模块的构成，包含从算法基础到实现引申的全部内容敬请期待。&lt;/p>
+&lt;/blockquote>
+&lt;h2 id="flutterweb-编译流程">FlutterWeb 编译流程&lt;/h2>
+&lt;h3 id="整体结构">整体结构&lt;/h3>
+&lt;p>熟悉 &lt;code>flutter_tools&lt;/code> 的读者应该对如何在编译流程之中插入 web 实现的方案并不陌生，&lt;code>flutter_tools&lt;/code> 的命令利用对应的处理框架进行了比较有效的解耦。在 &lt;code>lib/src&lt;/code> 文件夹下增加了 &lt;code>web&lt;/code> 的 &lt;a href="https://sourcegraph.com/github.com/flutter/flutter@fabeb2a16f1d008ab8230f450c49141d35669798/-/tree/packages/flutter_tools/lib/src/web">实现&lt;/a> 。具体新增的文件列表如下图：&lt;/p></description></item></channel></rss>

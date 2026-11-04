@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta content="Hugo 0.140.2" name="generator"/><meta content="IE=edge" http-equiv="X-UA-Compatible"/><meta content="width=device-width,initial-scale=1" name="viewport"/><meta content="Intra-Mind Traveler" name="author"/><meta content="https://blog.lfkdsk.org/read-retrofit/" property="og:url"/><link href="https://blog.lfkdsk.org/read-retrofit/" rel="canonical"/><link href="./img/favicon.ico" rel="apple-touch-icon"/><link href="./img/favicon.ico" rel="icon"/><link href="./img/favicon.ico" rel="shortcut"/><script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https:\/\/blog.lfkdsk.org\/"},"articleSection":"","name":"Retrofit 实现分析","headline":"Retrofit 实现分析","description":"\u003cp\u003eRetrofit 为我们提供了一种非常优雅的方式去书写 Restful 的请求的接口代码，和 OkHttp 、Rxjava 都能方便的无缝搭配，为我们在 Java 和 Android 提供了非常便捷的网络请求的编写方式。这篇文章中我们会从 Usage 出发，逐个步骤的分析 Retrofit 的实现方式。\u003c\/p\u003e\n\u003ch2 id=\u0022实现分析\u0022\u003e实现分析\u003c\/h2\u003e\n\u003cp\u003e我们可以定义这样的一个接口，代表一种 restful 请求：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;\u0022\u003e\u003ccode class=\u0022language-java\u0022 data-lang=\u0022java\u0022\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\u003cspan style=\u0022color:#66d9ef\u0022\u003epublic\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003einterface\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003eGitHubService\u003c\/span\u003e {\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e  \u003cspan style=\u0022color:#a6e22e\u0022\u003e@GET\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;users\/{user}\/repos\u0026#34;\u003c\/span\u003e)\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e  Call\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003eList\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003eRepo\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026gt;\u0026gt;\u003c\/span\u003e \u003cspan style=\u0022color:#a6e22e\u0022\u003elistRepos\u003c\/span\u003e(\u003cspan style=\u0022color:#a6e22e\u0022\u003e@Path\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;user\u0026#34;\u003c\/span\u003e) String user);\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e}\n\u003c\/span\u003e\u003c\/span\u003e\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e在使用 Retrofit 的时候：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;\u0022\u003e\u003ccode class=\u0022language-java\u0022 data-lang=\u0022java\u0022\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003eRetrofit retrofit \u003cspan style=\u0022color:#f92672\u0022\u003e=\u003c\/span\u003e \u003cspan style=\u0022color:#66d9ef\u0022\u003enew\u003c\/span\u003e Retrofit.\u003cspan style=\u0022color:#a6e22e\u0022\u003eBuilder\u003c\/span\u003e()\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e    .\u003cspan style=\u0022color:#a6e22e\u0022\u003ebaseUrl\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;https:\/\/api.github.com\/\u0026#34;\u003c\/span\u003e)\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e    .\u003cspan style=\u0022color:#a6e22e\u0022\u003ebuild\u003c\/span\u003e();\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003eGitHubService service \u003cspan style=\u0022color:#f92672\u0022\u003e=\u003c\/span\u003e retrofit.\u003cspan style=\u0022color:#a6e22e\u0022\u003ecreate\u003c\/span\u003e(GitHubService.\u003cspan style=\u0022color:#a6e22e\u0022\u003eclass\u003c\/span\u003e);\n\u003c\/span\u003e\u003c\/span\u003e\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e我们通过 \u003cstrong\u003eBuilder\u003c\/strong\u003e 模式拼好 baseUrl 等字串，通过 retrofit 对象可以创建我们的接口对应的实体类，我们通过对这个实体类的操作，就能对我们定义好的接口去请求对应的数据：\u003c\/p\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;\u0022\u003e\u003ccode class=\u0022language-java\u0022 data-lang=\u0022java\u0022\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003eCall\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003eList\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003eRepo\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026gt;\u0026gt;\u003c\/span\u003e repos \u003cspan style=\u0022color:#f92672\u0022\u003e=\u003c\/span\u003e service.\u003cspan style=\u0022color:#a6e22e\u0022\u003elistRepos\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;octocat\u0026#34;\u003c\/span\u003e);\n\u003c\/span\u003e\u003c\/span\u003e\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003ch3 id=\u0022创建请求类\u0022\u003e创建请求类\u003c\/h3\u003e\n\u003cdiv class=\u0022highlight\u0022\u003e\u003cpre tabindex=\u00220\u0022 style=\u0022color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;\u0022\u003e\u003ccode class=\u0022language-java\u0022 data-lang=\u0022java\u0022\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e    \u003cspan style=\u0022color:#a6e22e\u0022\u003e@SuppressWarnings\u003c\/span\u003e(\u003cspan style=\u0022color:#e6db74\u0022\u003e\u0026#34;unchecked\u0026#34;\u003c\/span\u003e) \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ Single-interface proxy creation guarded by parameter safety.\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e    \u003cspan style=\u0022color:#66d9ef\u0022\u003epublic\u003c\/span\u003e \u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003eT\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026gt;\u003c\/span\u003e T \u003cspan style=\u0022color:#a6e22e\u0022\u003ecreate\u003c\/span\u003e(\u003cspan style=\u0022color:#66d9ef\u0022\u003efinal\u003c\/span\u003e Class\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;\u003c\/span\u003eT\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026gt;\u003c\/span\u003e service) {\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e        Utils.\u003cspan style=\u0022color:#a6e22e\u0022\u003evalidateServiceInterface\u003c\/span\u003e(service);\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e        \u003cspan style=\u0022color:#66d9ef\u0022\u003eif\u003c\/span\u003e (validateEagerly) {\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e            eagerlyValidateMethods(service);\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e        }\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e        \u003cspan style=\u0022color:#66d9ef\u0022\u003ereturn\u003c\/span\u003e (T) Proxy.\u003cspan style=\u0022color:#a6e22e\u0022\u003enewProxyInstance\u003c\/span\u003e(service.\u003cspan style=\u0022color:#a6e22e\u0022\u003egetClassLoader\u003c\/span\u003e(), \u003cspan style=\u0022color:#66d9ef\u0022\u003enew\u003c\/span\u003e Class\u003cspan style=\u0022color:#f92672\u0022\u003e\u0026lt;?\u0026gt;[]\u003c\/span\u003e{service}, \u003cspan style=\u0022color:#66d9ef\u0022\u003enew\u003c\/span\u003e InvocationHandler() {\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e                 \u003cspan style=\u0022color:#75715e\u0022\u003e\/\/ ... 省略\u003c\/span\u003e\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e        }\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e                \n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e      });\n\u003c\/span\u003e\u003c\/span\u003e\u003cspan style=\u0022display:flex;\u0022\u003e\u003cspan\u003e    }\n\u003c\/span\u003e\u003c\/span\u003e\u003c\/code\u003e\u003c\/pre\u003e\u003c\/div\u003e\u003cp\u003e这里我们先是对 class 对象的类型做了检测保证了是 Interface 而且没有多继承，并且在开了 \u003ccode\u003evalidateEagerly\u003c\/code\u003e 的情况下会对 Service 里面的请求接口进行 Cache：\u003c\/p\u003e","inLanguage":"en-US","author":"Intra-Mind Traveler","creator":"Intra-Mind Traveler","publisher":"Intra-Mind Traveler","accountablePerson":"Intra-Mind Traveler","copyrightHolder":"Intra-Mind Traveler","copyrightYear":"2017","datePublished":"2017-08-24 19:50:32 \u002b0000 UTC","dateModified":"2017-08-24 19:50:32 \u002b0000 UTC","url":"https:\/\/blog.lfkdsk.org\/read-retrofit\/","keywords":["源码阅读","Blog","lfkdsk's Blog","lfkdsk","刘丰恺"]}</script><title>Retrofit 实现分析 - lfkdsk's Blog</title>
+<meta content="Retrofit 实现分析 - lfkdsk's Blog" property="og:title"/><meta content="article" property="og:type"/><meta content='Retrofit 为我们提供了一种非常优雅的方式去书写 Restful 的请求的接口代码，和 OkHttp 、Rxjava 都能方便的无缝搭配，为我们在 Java 和 Android 提供了非常便捷的网络请求的编写方式。这篇文章中我们会从 Usage 出发，逐个步骤的分析 Retrofit 的实现方式。
+实现分析
+我们可以定义这样的一个接口，代表一种 restful 请求：
+public interface GitHubService {
+  @GET("users/{user}/repos")
+  Call&lt;List&lt;Repo&gt;&gt; listRepos(@Path("user") String user);
+}
+在使用 Retrofit 的时候：
+Retrofit retrofit = new Retrofit.Builder()
+    .baseUrl("https://api.github.com/")
+    .build();
+
+GitHubService service = retrofit.create(GitHubService.class);
+我们通过 Builder 模式拼好 baseUrl 等字串，通过 retrofit 对象可以创建我们的接口对应的实体类，我们通过对这个实体类的操作，就能对我们定义好的接口去请求对应的数据：
+Call&lt;List&lt;Repo&gt;&gt; repos = service.listRepos("octocat");
+创建请求类
+    @SuppressWarnings("unchecked") // Single-interface proxy creation guarded by parameter safety.
+    public &lt;T&gt; T create(final Class&lt;T&gt; service) {
+        Utils.validateServiceInterface(service);
+        if (validateEagerly) {
+            eagerlyValidateMethods(service);
+        }
+        return (T) Proxy.newProxyInstance(service.getClassLoader(), new Class&lt;?&gt;[]{service}, new InvocationHandler() {
+                 // ... 省略
+        }
+                
+      });
+    }
+这里我们先是对 class 对象的类型做了检测保证了是 Interface 而且没有多继承，并且在开了 validateEagerly 的情况下会对 Service 里面的请求接口进行 Cache：' name="description"/><link href="https://fonts.googleapis.com/css?family=Arvo|Permanent+Marker" rel="stylesheet"/><link href="https://unpkg.com/flexboxgrid@6.3.1/dist/flexboxgrid.min.css" rel="stylesheet"/><link href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/2.10.0/github-markdown.min.css" rel="stylesheet"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/androidstudio.min.css" rel="stylesheet"/><link href="/css/paper.css" rel="stylesheet"/><link href="/css/index.css" rel="stylesheet"/><link href="/index.xml" rel="alternate" title="lfkdsk's Blog" type="application/rss+xml"/><link href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css?family=Bree+Serif|Bungee+Shade" rel="stylesheet"/><script>(function(){}).call("object"==typeof window&&window||"object"==typeof self&&self||"object"==typeof global&&global||{})</script><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-8TMSDJG47Q"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-8TMSDJG47Q")</script></head><body><article class="post Chinese" id="article"><div class="row"><div class="paper col-xs-12 col-md-8 col-md-offset-2 col-lg-8 col-lg-offset-2"><a href="/"><div class="head-line"></div></a><header class="post-header"><h1 class="post-title">Retrofit 实现分析</h1><div class="row"><div class="col-xs-6"><time class="post-date" datetime="2017-08-24 19:50:32 UTC">24 Aug 2017</time></div><div class="col-xs-6"><div class="post-author"><a href="https://blog.lfkdsk.org/" target="_blank">@Intra-Mind Traveler</a></div></div></div></header><div class="post-content markdown-body"><p>Retrofit 为我们提供了一种非常优雅的方式去书写 Restful 的请求的接口代码，和 OkHttp 、Rxjava 都能方便的无缝搭配，为我们在 Java 和 Android 提供了非常便捷的网络请求的编写方式。这篇文章中我们会从 Usage 出发，逐个步骤的分析 Retrofit 的实现方式。</p><h2 id="实现分析">实现分析</h2><p>我们可以定义这样的一个接口，代表一种 restful 请求：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">GitHubService</span> {
+</span></span><span style="display:flex"><span>  <span style="color:#a6e22e">@GET</span>(<span style="color:#e6db74">"users/{user}/repos"</span>)
+</span></span><span style="display:flex"><span>  Call<span style="color:#f92672">&lt;</span>List<span style="color:#f92672">&lt;</span>Repo<span style="color:#f92672">&gt;&gt;</span> <span style="color:#a6e22e">listRepos</span>(<span style="color:#a6e22e">@Path</span>(<span style="color:#e6db74">"user"</span>) String user);
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>在使用 Retrofit 的时候：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>Retrofit retrofit <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Retrofit.<span style="color:#a6e22e">Builder</span>()
+</span></span><span style="display:flex"><span>    .<span style="color:#a6e22e">baseUrl</span>(<span style="color:#e6db74">"https://api.github.com/"</span>)
+</span></span><span style="display:flex"><span>    .<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>GitHubService service <span style="color:#f92672">=</span> retrofit.<span style="color:#a6e22e">create</span>(GitHubService.<span style="color:#a6e22e">class</span>);
+</span></span></code></pre></div><p>我们通过 <strong>Builder</strong> 模式拼好 baseUrl 等字串，通过 retrofit 对象可以创建我们的接口对应的实体类，我们通过对这个实体类的操作，就能对我们定义好的接口去请求对应的数据：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>Call<span style="color:#f92672">&lt;</span>List<span style="color:#f92672">&lt;</span>Repo<span style="color:#f92672">&gt;&gt;</span> repos <span style="color:#f92672">=</span> service.<span style="color:#a6e22e">listRepos</span>(<span style="color:#e6db74">"octocat"</span>);
+</span></span></code></pre></div><h3 id="创建请求类">创建请求类</h3><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>    <span style="color:#a6e22e">@SuppressWarnings</span>(<span style="color:#e6db74">"unchecked"</span>) <span style="color:#75715e">// Single-interface proxy creation guarded by parameter safety.</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">public</span> <span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> T <span style="color:#a6e22e">create</span>(<span style="color:#66d9ef">final</span> Class<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> service) {
+</span></span><span style="display:flex"><span>        Utils.<span style="color:#a6e22e">validateServiceInterface</span>(service);
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (validateEagerly) {
+</span></span><span style="display:flex"><span>            eagerlyValidateMethods(service);
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> (T) Proxy.<span style="color:#a6e22e">newProxyInstance</span>(service.<span style="color:#a6e22e">getClassLoader</span>(), <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">&lt;?&gt;[]</span>{service}, <span style="color:#66d9ef">new</span> InvocationHandler() {
+</span></span><span style="display:flex"><span>                 <span style="color:#75715e">// ... 省略</span>
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>                
+</span></span><span style="display:flex"><span>      });
+</span></span><span style="display:flex"><span>    }
+</span></span></code></pre></div><p>这里我们先是对 class 对象的类型做了检测保证了是 Interface 而且没有多继承，并且在开了 <code>validateEagerly</code> 的情况下会对 Service 里面的请求接口进行 Cache：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">eagerlyValidateMethods</span>(Class<span style="color:#f92672">&lt;?&gt;</span> service) {
+</span></span><span style="display:flex"><span>        Platform platform <span style="color:#f92672">=</span> Platform.<span style="color:#a6e22e">get</span>();
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">for</span> (Method method : service.<span style="color:#a6e22e">getDeclaredMethods</span>()) {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>platform.<span style="color:#a6e22e">isDefaultMethod</span>(method)) {
+</span></span><span style="display:flex"><span>                loadServiceMethod(method);
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    ServiceMethod<span style="color:#f92672">&lt;?</span>, <span style="color:#f92672">?&gt;</span> loadServiceMethod(Method method) {
+</span></span><span style="display:flex"><span>        ServiceMethod<span style="color:#f92672">&lt;?</span>, <span style="color:#f92672">?&gt;</span> result <span style="color:#f92672">=</span> serviceMethodCache.<span style="color:#a6e22e">get</span>(method);
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (result <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) <span style="color:#66d9ef">return</span> result;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">synchronized</span> (serviceMethodCache) {
+</span></span><span style="display:flex"><span>            result <span style="color:#f92672">=</span> serviceMethodCache.<span style="color:#a6e22e">get</span>(method);
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">if</span> (result <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex"><span>                result <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ServiceMethod.<span style="color:#a6e22e">Builder</span><span style="color:#f92672">&lt;&gt;</span>(<span style="color:#66d9ef">this</span>, method).<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex"><span>                serviceMethodCache.<span style="color:#a6e22e">put</span>(method, result);
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> result;
+</span></span><span style="display:flex"><span>    }
+</span></span></code></pre></div><h3 id="动态代理">动态代理</h3><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span><span style="color:#66d9ef">return</span> (T) Proxy.<span style="color:#a6e22e">newProxyInstance</span>(service.<span style="color:#a6e22e">getClassLoader</span>(), <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">&lt;?&gt;[]</span>{service},
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">new</span> InvocationHandler() {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Platform platform <span style="color:#f92672">=</span> Platform.<span style="color:#a6e22e">get</span>();
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>            <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">invoke</span>(Object proxy, Method method, <span style="color:#a6e22e">@Nullable</span> Object<span style="color:#f92672">[]</span> args)
+</span></span><span style="display:flex"><span>                    <span style="color:#66d9ef">throws</span> Throwable {
+</span></span><span style="display:flex"><span>                <span style="color:#75715e">// If the method is a method from Object then defer to normal invocation.</span>
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">if</span> (method.<span style="color:#a6e22e">getDeclaringClass</span>() <span style="color:#f92672">==</span> Object.<span style="color:#a6e22e">class</span>) {
+</span></span><span style="display:flex"><span>                    <span style="color:#66d9ef">return</span> method.<span style="color:#a6e22e">invoke</span>(<span style="color:#66d9ef">this</span>, args);
+</span></span><span style="display:flex"><span>                }
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">if</span> (platform.<span style="color:#a6e22e">isDefaultMethod</span>(method)) {
+</span></span><span style="display:flex"><span>                    <span style="color:#66d9ef">return</span> platform.<span style="color:#a6e22e">invokeDefaultMethod</span>(method, service, proxy, args);
+</span></span><span style="display:flex"><span>                }
+</span></span><span style="display:flex"><span>                ServiceMethod<span style="color:#f92672">&lt;</span>Object, Object<span style="color:#f92672">&gt;</span> serviceMethod <span style="color:#f92672">=</span>
+</span></span><span style="display:flex"><span>                        (ServiceMethod<span style="color:#f92672">&lt;</span>Object, Object<span style="color:#f92672">&gt;</span>) loadServiceMethod(method);
+</span></span><span style="display:flex"><span>                OkHttpCall<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;</span> okHttpCall <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> OkHttpCall<span style="color:#f92672">&lt;&gt;</span>(serviceMethod, args);
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">return</span> serviceMethod.<span style="color:#a6e22e">callAdapter</span>.<span style="color:#a6e22e">adapt</span>(okHttpCall);
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>        });
+</span></span></code></pre></div><p>这就是刚才在 Create 函数中的省略的部分，从这个写法看了明显是用了动态代理的方式。使用代理的方式当然是为了能统一的对我们 Service 进去的方法做一些操作，比如判断是否走 method 的正常的 invoke 方法，判断了是否是 default 方法，当然这个根本就不支持，然后就是正常的绑定成一个 ServiceMethod 里面存储和请求的各种元信息，最后把他们封装成一个 OkHttp 的请求交给 Adapt 托管，这样我们就完成了整个请求服务类的创建。</p><h3 id="servicemethod">ServiceMethod</h3><p>我们可以来看下这个包含元信息的 ServiceMethod 是怎么构建的：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>    ServiceMethod<span style="color:#f92672">&lt;?</span>, <span style="color:#f92672">?&gt;</span> loadServiceMethod(Method method) {
+</span></span><span style="display:flex"><span>        ServiceMethod<span style="color:#f92672">&lt;?</span>, <span style="color:#f92672">?&gt;</span> result <span style="color:#f92672">=</span> serviceMethodCache.<span style="color:#a6e22e">get</span>(method);
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (result <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) <span style="color:#66d9ef">return</span> result;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">synchronized</span> (serviceMethodCache) {
+</span></span><span style="display:flex"><span>            result <span style="color:#f92672">=</span> serviceMethodCache.<span style="color:#a6e22e">get</span>(method);
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">if</span> (result <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex"><span>                result <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ServiceMethod.<span style="color:#a6e22e">Builder</span><span style="color:#f92672">&lt;&gt;</span>(<span style="color:#66d9ef">this</span>, method).<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex"><span>                serviceMethodCache.<span style="color:#a6e22e">put</span>(method, result);
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> result;
+</span></span><span style="display:flex"><span>    }
+</span></span></code></pre></div><p>使用了 ServiceMethod 的默认 build 方法：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>    Builder(Retrofit retrofit, Method method) {
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">retrofit</span> <span style="color:#f92672">=</span> retrofit;
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">method</span> <span style="color:#f92672">=</span> method;
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">methodAnnotations</span> <span style="color:#f92672">=</span> method.<span style="color:#a6e22e">getAnnotations</span>();
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">parameterTypes</span> <span style="color:#f92672">=</span> method.<span style="color:#a6e22e">getGenericParameterTypes</span>();
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">parameterAnnotationsArray</span> <span style="color:#f92672">=</span> method.<span style="color:#a6e22e">getParameterAnnotations</span>();
+</span></span><span style="display:flex"><span>    }
+</span></span></code></pre></div><p>在这之中我们绑定了很多的东西，绑定了我们对这个方法加的注解，参数类型，还有参数的注解，之后在 <code>build</code> 方法之中，主要的事情就是生成 CallAdapter ， 还有就是为我们的 Response 提供类型转化的 Converter （比如和 Rxjava 一同使用的就会需要这个）。</p><h3 id="calladapter">CallAdapter</h3><p>在生成的 CallAdapter 的探索路径中我们会发现是在 Retrofit 的 <code>build</code> 创建的:</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>adapterFactories.<span style="color:#a6e22e">add</span>(platform.<span style="color:#a6e22e">defaultCallAdapterFactory</span>(callbackExecutor));
+</span></span></code></pre></div><p>我们的默认的 CallAdapter.Factory 是从 Platform 中提供的：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>    CallAdapter.<span style="color:#a6e22e">Factory</span> <span style="color:#a6e22e">defaultCallAdapterFactory</span>(<span style="color:#a6e22e">@Nullable</span> Executor callbackExecutor) {
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (callbackExecutor <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> ExecutorCallAdapterFactory(callbackExecutor);
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> DefaultCallAdapterFactory.<span style="color:#a6e22e">INSTANCE</span>;
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * Creates call adapters for that uses the same thread for both I/O and application-level
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * callbacks. For synchronous calls this is the application thread making the request; for
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * asynchronous calls this is a thread provided by OkHttp's dispatcher.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">final</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DefaultCallAdapterFactory</span> <span style="color:#66d9ef">extends</span> CallAdapter.<span style="color:#a6e22e">Factory</span> {
+</span></span><span style="display:flex"><span>  <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> CallAdapter.<span style="color:#a6e22e">Factory</span> INSTANCE <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> DefaultCallAdapterFactory();
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>  <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex"><span>  <span style="color:#66d9ef">public</span> CallAdapter<span style="color:#f92672">&lt;?</span>, <span style="color:#f92672">?&gt;</span> get(Type returnType, Annotation<span style="color:#f92672">[]</span> annotations, Retrofit retrofit) {
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">if</span> (getRawType(returnType) <span style="color:#f92672">!=</span> Call.<span style="color:#a6e22e">class</span>) {
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">final</span> Type responseType <span style="color:#f92672">=</span> Utils.<span style="color:#a6e22e">getCallResponseType</span>(returnType);
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> CallAdapter<span style="color:#f92672">&lt;</span>Object, Call<span style="color:#f92672">&lt;?&gt;&gt;</span>() {
+</span></span><span style="display:flex"><span>      <span style="color:#a6e22e">@Override</span> <span style="color:#66d9ef">public</span> Type <span style="color:#a6e22e">responseType</span>() {
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> responseType;
+</span></span><span style="display:flex"><span>      }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>      <span style="color:#a6e22e">@Override</span> <span style="color:#66d9ef">public</span> Call<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">adapt</span>(Call<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;</span> call) {
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> call;
+</span></span><span style="display:flex"><span>      }
+</span></span><span style="display:flex"><span>    };
+</span></span><span style="display:flex"><span>  }
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>从注释里面我们也能看出来这个是使用相同的线程去创建 CallBack 和 开 IO ，如果是异步的 OKHTTP 就是从它的默认的分发的线程，如果是同步调用就和应用用同一个线程。</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">CallAdapter</span><span style="color:#f92672">&lt;</span>R, T<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * Returns the value type that this adapter uses when converting the HTTP response body to a Java
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * object. For example, the response type for {@code Call&lt;Repo&gt;} is {@code Repo}. This type
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * is used to prepare the {@code call} passed to {@code #adapt}.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * &lt;p&gt;
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * Note: This is typically not the same type as the {@code returnType} provided to this call
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * adapter's factory.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   */</span>
+</span></span><span style="display:flex"><span>  Type <span style="color:#a6e22e">responseType</span>();
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * Returns an instance of {@code T} which delegates to {@code call}.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * &lt;p&gt;
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * For example, given an instance for a hypothetical utility, {@code Async}, this instance would
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * return a new {@code Async&lt;R&gt;} which invoked {@code call} when run.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * &lt;pre&gt;&lt;code&gt;
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * &amp;#64;Override
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * public &amp;lt;R&amp;gt; Async&amp;lt;R&amp;gt; adapt(final Call&amp;lt;R&amp;gt; call) {
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   *   return Async.create(new Callable&amp;lt;Response&amp;lt;R&amp;gt;&amp;gt;() {
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   *     &amp;#64;Override
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   *     public Response&amp;lt;R&amp;gt; call() throws Exception {
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   *       return call.execute();
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   *     }
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   *   });
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * }
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * &lt;/code&gt;&lt;/pre&gt;
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   */</span>
+</span></span><span style="display:flex"><span>  T <span style="color:#a6e22e">adapt</span>(Call<span style="color:#f92672">&lt;</span>R<span style="color:#f92672">&gt;</span> call);
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>另外我们看这个生成的 CallAdapter 本身做了什么事，它判断了返回的 Response 的类型，针对类型去泛化了一个对应的 CallAdapter ， Adapter 做得事情就是把提供接口在 adapter 的过程中给 Call 增加代理（默认的工厂方法没有提供），另外就是提供类型信息当 Response 回来的时候能进行正确的类型转化。</p><h3 id="converter">Converter</h3><p>Response Converter 的设计思路和 Adapter 的思路其实是差不多的提供默认的接口，并且辅助包中提供了大量的额外实现：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * Convert objects to and from their representation in HTTP. Instances are created by {@linkplain
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * Factory a factory} which is {@linkplain Retrofit.Builder#addConverterFactory(Factory) installed}
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * into the {@link Retrofit} instance.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">Converter</span><span style="color:#f92672">&lt;</span>F, T<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex"><span>  T <span style="color:#a6e22e">convert</span>(F value) <span style="color:#66d9ef">throws</span> IOException;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   * Creates {@link Converter} instances based on a type and target usage.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">   */</span>
+</span></span><span style="display:flex"><span>  <span style="color:#66d9ef">abstract</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Factory</span> {
+</span></span><span style="display:flex"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * Returns a {@link Converter} for converting an HTTP response body to {@code type}, or null if
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * {@code type} cannot be handled by this factory. This is used to create converters for
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * response types such as {@code SimpleResponse} from a {@code Call&lt;SimpleResponse&gt;}
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * declaration.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">@Nullable</span>
+</span></span><span style="display:flex"><span>    Converter<span style="color:#f92672">&lt;</span>ResponseBody, <span style="color:#f92672">?&gt;</span> responseBodyConverter(Type type,
+</span></span><span style="display:flex"><span>                                                     Annotation<span style="color:#f92672">[]</span> annotations, Retrofit retrofit) {
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * Returns a {@link Converter} for converting {@code type} to an HTTP request body, or null if
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * {@code type} cannot be handled by this factory. This is used to create converters for types
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * specified by {@link Body @Body}, {@link Part @Part}, and {@link PartMap @PartMap}
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * values.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">@Nullable</span>
+</span></span><span style="display:flex"><span>    Converter<span style="color:#f92672">&lt;?</span>, RequestBody<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">requestBodyConverter</span>(Type type,
+</span></span><span style="display:flex"><span>                                                   Annotation<span style="color:#f92672">[]</span> parameterAnnotations, Annotation<span style="color:#f92672">[]</span> methodAnnotations, Retrofit retrofit) {
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * Returns a {@link Converter} for converting {@code type} to a {@link String}, or null if
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * {@code type} cannot be handled by this factory. This is used to create converters for types
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * specified by {@link Field @Field}, {@link FieldMap @FieldMap} values,
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * {@link Header @Header}, {@link HeaderMap @HeaderMap}, {@link Path @Path},
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * {@link Query @Query}, and {@link QueryMap @QueryMap} values.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">@Nullable</span>
+</span></span><span style="display:flex"><span>    Converter<span style="color:#f92672">&lt;?</span>, String<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">stringConverter</span>(Type type, Annotation<span style="color:#f92672">[]</span> annotations,
+</span></span><span style="display:flex"><span>                                         Retrofit retrofit) {
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * Extract the upper bound of the generic parameter at {@code index} from {@code type}. For
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * example, index 1 of {@code Map&lt;String, ? extends Runnable&gt;} returns {@code Runnable}.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">static</span> Type <span style="color:#a6e22e">getParameterUpperBound</span>(<span style="color:#66d9ef">int</span> index, ParameterizedType type) {
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">return</span> Utils.<span style="color:#a6e22e">getParameterUpperBound</span>(index, type);
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * Extract the raw class type from {@code type}. For example, the type representing
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * {@code List&lt;? extends Runnable&gt;} returns {@code List.class}.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">static</span> Class<span style="color:#f92672">&lt;?&gt;</span> getRawType(Type type) {
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">return</span> Utils.<span style="color:#a6e22e">getRawType</span>(type);
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>  }
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>真对不同需求的实现可以去实现不同的方法，比如 rxjava2 包里的 StringConverterFactory 就默认只实现了和 String 相关的方法：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span><span style="color:#66d9ef">final</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">StringConverterFactory</span> <span style="color:#66d9ef">extends</span> Converter.<span style="color:#a6e22e">Factory</span> {
+</span></span><span style="display:flex"><span>  <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex"><span>  <span style="color:#66d9ef">public</span> Converter<span style="color:#f92672">&lt;</span>ResponseBody, <span style="color:#f92672">?&gt;</span> responseBodyConverter(Type type, Annotation<span style="color:#f92672">[]</span> annotations,
+</span></span><span style="display:flex"><span>      Retrofit retrofit) {
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> Converter<span style="color:#f92672">&lt;</span>ResponseBody, String<span style="color:#f92672">&gt;</span>() {
+</span></span><span style="display:flex"><span>      <span style="color:#a6e22e">@Override</span> <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">convert</span>(ResponseBody value) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> value.<span style="color:#a6e22e">string</span>();
+</span></span><span style="display:flex"><span>      }
+</span></span><span style="display:flex"><span>    };
+</span></span><span style="display:flex"><span>  }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>  <span style="color:#a6e22e">@Override</span> <span style="color:#66d9ef">public</span> Converter<span style="color:#f92672">&lt;?</span>, RequestBody<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">requestBodyConverter</span>(Type type,
+</span></span><span style="display:flex"><span>      Annotation<span style="color:#f92672">[]</span> parameterAnnotations, Annotation<span style="color:#f92672">[]</span> methodAnnotations, Retrofit retrofit) {
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> Converter<span style="color:#f92672">&lt;</span>String, RequestBody<span style="color:#f92672">&gt;</span>() {
+</span></span><span style="display:flex"><span>      <span style="color:#a6e22e">@Override</span> <span style="color:#66d9ef">public</span> RequestBody <span style="color:#a6e22e">convert</span>(String value) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> RequestBody.<span style="color:#a6e22e">create</span>(MediaType.<span style="color:#a6e22e">parse</span>(<span style="color:#e6db74">"text/plain"</span>), value);
+</span></span><span style="display:flex"><span>      }
+</span></span><span style="display:flex"><span>    };
+</span></span><span style="display:flex"><span>  }
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>这里面提供了吧 ResponseBody 转为 String 的 Converter 和把 String 构建成 ResponseBody 的方法，比如我们经常用的 Gson 的 Converter：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * A {@linkplain Converter.Factory converter} which uses Gson for JSON.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * &lt;p&gt;
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * Because Gson is so flexible in the types it supports, this converter assumes that it can handle
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * all types. If you are mixing JSON serialization with something else (such as protocol buffers),
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * you must {@linkplain Retrofit.Builder#addConverterFactory(Converter.Factory) add this instance}
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> * last to allow the other converters a chance to see their types.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">GsonConverterFactory</span> <span style="color:#66d9ef">extends</span> Converter.<span style="color:#a6e22e">Factory</span> {
+</span></span><span style="display:flex"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * Create an instance using a default {@link Gson} instance for conversion. Encoding to JSON and
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * decoding from JSON (when no charset is specified by a header) will use UTF-8.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> GsonConverterFactory <span style="color:#a6e22e">create</span>() {
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> create(<span style="color:#66d9ef">new</span> Gson());
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * Create an instance using {@code gson} for conversion. Encoding to JSON and
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     * decoding from JSON (when no charset is specified by a header) will use UTF-8.
+</span></span></span><span style="display:flex"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex"><span>    <span style="color:#a6e22e">@SuppressWarnings</span>(<span style="color:#e6db74">"ConstantConditions"</span>) <span style="color:#75715e">// Guarding public API nullability.</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> GsonConverterFactory <span style="color:#a6e22e">create</span>(Gson gson) {
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (gson <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> NullPointerException(<span style="color:#e6db74">"gson == null"</span>);
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> GsonConverterFactory(gson);
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Gson gson;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">private</span> <span style="color:#a6e22e">GsonConverterFactory</span>(Gson gson) {
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">gson</span> <span style="color:#f92672">=</span> gson;
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">public</span> Converter<span style="color:#f92672">&lt;</span>ResponseBody, <span style="color:#f92672">?&gt;</span> responseBodyConverter(Type type, Annotation<span style="color:#f92672">[]</span> annotations,
+</span></span><span style="display:flex"><span>                                                            Retrofit retrofit) {
+</span></span><span style="display:flex"><span>        TypeAdapter<span style="color:#f92672">&lt;?&gt;</span> adapter <span style="color:#f92672">=</span> gson.<span style="color:#a6e22e">getAdapter</span>(TypeToken.<span style="color:#a6e22e">get</span>(type));
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> GsonResponseBodyConverter<span style="color:#f92672">&lt;&gt;</span>(gson, adapter);
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">public</span> Converter<span style="color:#f92672">&lt;?</span>, RequestBody<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">requestBodyConverter</span>(Type type,
+</span></span><span style="display:flex"><span>                                                          Annotation<span style="color:#f92672">[]</span> parameterAnnotations, Annotation<span style="color:#f92672">[]</span> methodAnnotations, Retrofit retrofit) {
+</span></span><span style="display:flex"><span>        TypeAdapter<span style="color:#f92672">&lt;?&gt;</span> adapter <span style="color:#f92672">=</span> gson.<span style="color:#a6e22e">getAdapter</span>(TypeToken.<span style="color:#a6e22e">get</span>(type));
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> GsonRequestBodyConverter<span style="color:#f92672">&lt;&gt;</span>(gson, adapter);
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>}
+</span></span></code></pre></div><p>里面则提供了对 Gson 的转化，因为 Type 信息在之前已经拿到了，所以 Gson 的转换也非常简单。</p><h3 id="parameterhandlers">ParameterHandlers</h3><p><code>parseParameterAnnotation</code> 根据注解和类型分门别类的对每个参数对应了一个 ParameterHandler ，这段过程没有太多可说的地方，基本上就是对不同类型的一个大的判断和 Parser ，ParameterHandler 中有不同的 apply 方法对我们不同的类型进行处理：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span><span style="color:#66d9ef">abstract</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">apply</span>(RequestBuilder builder, <span style="color:#a6e22e">@Nullable</span> T value) <span style="color:#66d9ef">throws</span> IOException;
+</span></span></code></pre></div><p>最终的目的都是为了为 RequestBuilder 这个对象拼接需要的元信息。</p><h2 id="发送请求">发送请求</h2><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>Call<span style="color:#f92672">&lt;</span>List<span style="color:#f92672">&lt;</span>Repo<span style="color:#f92672">&gt;&gt;</span> repos <span style="color:#f92672">=</span> service.<span style="color:#a6e22e">listRepos</span>(<span style="color:#e6db74">"octocat"</span>);
+</span></span></code></pre></div><p>刚才我们提到了发送请求就是直接这样使用的就可以把我们的请求发送出来了，我们刚才提到了很多请求用到的 <strong>元数据</strong> 的绑定，那我们现在应该已经有了一个充满了请求所需数据的 <strong>ResponseBuilder</strong> 我们需要的就是调用刚才绑定的那个 OkHttpCall 了：</p><h3 id="execute">execute()</h3><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span><span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">public</span> Response<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">execute</span>() <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex"><span>    okhttp3.<span style="color:#a6e22e">Call</span> call;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">synchronized</span> (<span style="color:#66d9ef">this</span>) {
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (executed) <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> IllegalStateException(<span style="color:#e6db74">"Already executed."</span>);
+</span></span><span style="display:flex"><span>        executed <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (creationFailure <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">if</span> (creationFailure <span style="color:#66d9ef">instanceof</span> IOException) {
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">throw</span> (IOException) creationFailure;
+</span></span><span style="display:flex"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">throw</span> (RuntimeException) creationFailure;
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        call <span style="color:#f92672">=</span> rawCall;
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (call <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex"><span>                call <span style="color:#f92672">=</span> rawCall <span style="color:#f92672">=</span> createRawCall();
+</span></span><span style="display:flex"><span>            } <span style="color:#66d9ef">catch</span> (IOException <span style="color:#f92672">|</span> RuntimeException e) {
+</span></span><span style="display:flex"><span>                creationFailure <span style="color:#f92672">=</span> e;
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">throw</span> e;
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">if</span> (canceled) {
+</span></span><span style="display:flex"><span>        call.<span style="color:#a6e22e">cancel</span>();
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">return</span> parseResponse(call.<span style="color:#a6e22e">execute</span>());
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span><span style="color:#66d9ef">private</span> okhttp3.<span style="color:#a6e22e">Call</span> <span style="color:#a6e22e">createRawCall</span>() <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex"><span>    Request request <span style="color:#f92672">=</span> serviceMethod.<span style="color:#a6e22e">toRequest</span>(args);
+</span></span><span style="display:flex"><span>    okhttp3.<span style="color:#a6e22e">Call</span> call <span style="color:#f92672">=</span> serviceMethod.<span style="color:#a6e22e">callFactory</span>.<span style="color:#a6e22e">newCall</span>(request);
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">if</span> (call <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> NullPointerException(<span style="color:#e6db74">"Call.Factory returned null."</span>);
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">return</span> call;
+</span></span><span style="display:flex"><span>}
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>   Response<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">parseResponse</span>(okhttp3.<span style="color:#a6e22e">Response</span> rawResponse) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex"><span>        ResponseBody rawBody <span style="color:#f92672">=</span> rawResponse.<span style="color:#a6e22e">body</span>();
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#75715e">// Remove the body's source (the only stateful object) so we can pass the response along.</span>
+</span></span><span style="display:flex"><span>        rawResponse <span style="color:#f92672">=</span> rawResponse.<span style="color:#a6e22e">newBuilder</span>()
+</span></span><span style="display:flex"><span>                .<span style="color:#a6e22e">body</span>(<span style="color:#66d9ef">new</span> NoContentResponseBody(rawBody.<span style="color:#a6e22e">contentType</span>(), rawBody.<span style="color:#a6e22e">contentLength</span>()))
+</span></span><span style="display:flex"><span>                .<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">int</span> code <span style="color:#f92672">=</span> rawResponse.<span style="color:#a6e22e">code</span>();
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (code <span style="color:#f92672">&lt;</span> 200 <span style="color:#f92672">||</span> code <span style="color:#f92672">&gt;=</span> 300) {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex"><span>                <span style="color:#75715e">// Buffer the entire body to avoid future I/O.</span>
+</span></span><span style="display:flex"><span>                ResponseBody bufferedBody <span style="color:#f92672">=</span> Utils.<span style="color:#a6e22e">buffer</span>(rawBody);
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">return</span> Response.<span style="color:#a6e22e">error</span>(bufferedBody, rawResponse);
+</span></span><span style="display:flex"><span>            } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex"><span>                rawBody.<span style="color:#a6e22e">close</span>();
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (code <span style="color:#f92672">==</span> 204 <span style="color:#f92672">||</span> code <span style="color:#f92672">==</span> 205) {
+</span></span><span style="display:flex"><span>            rawBody.<span style="color:#a6e22e">close</span>();
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">return</span> Response.<span style="color:#a6e22e">success</span>(<span style="color:#66d9ef">null</span>, rawResponse);
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        ExceptionCatchingRequestBody catchingBody <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ExceptionCatchingRequestBody(rawBody);
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex"><span>            T body <span style="color:#f92672">=</span> serviceMethod.<span style="color:#a6e22e">toResponse</span>(catchingBody);
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">return</span> Response.<span style="color:#a6e22e">success</span>(body, rawResponse);
+</span></span><span style="display:flex"><span>        } <span style="color:#66d9ef">catch</span> (RuntimeException e) {
+</span></span><span style="display:flex"><span>            <span style="color:#75715e">// If the underlying source threw an exception, propagate that rather than indicating it was</span>
+</span></span><span style="display:flex"><span>            <span style="color:#75715e">// a runtime exception.</span>
+</span></span><span style="display:flex"><span>            catchingBody.<span style="color:#a6e22e">throwIfCaught</span>();
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">throw</span> e;
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>    }
+</span></span></code></pre></div><p><code>execute()</code> 方法实现了同步请求的方法，这其中的网络请求和调用自然是全靠 OkHttp 来实现的，另外本身使用 OkHttp 的 <code>execute</code> 方法就是一个阻塞的方法。其中值得注意的是我们对 Request 和 Response 的处理，分别是用了 ServiceMethod 中的方法：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>  <span style="color:#75715e">/** Builds an HTTP request from method arguments. */</span>
+</span></span><span style="display:flex"><span>  Request <span style="color:#a6e22e">toRequest</span>(<span style="color:#a6e22e">@Nullable</span> Object... args) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex"><span>    RequestBuilder requestBuilder <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RequestBuilder(httpMethod, baseUrl, relativeUrl, headers,
+</span></span><span style="display:flex"><span>        contentType, hasBody, isFormEncoded, isMultipart);
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#a6e22e">@SuppressWarnings</span>(<span style="color:#e6db74">"unchecked"</span>) <span style="color:#75715e">// It is an error to invoke a method with the wrong arg types.</span>
+</span></span><span style="display:flex"><span>    ParameterHandler<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;[]</span> handlers <span style="color:#f92672">=</span> (ParameterHandler<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;[]</span>) parameterHandlers;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">int</span> argumentCount <span style="color:#f92672">=</span> args <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">?</span> args.<span style="color:#a6e22e">length</span> : 0;
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">if</span> (argumentCount <span style="color:#f92672">!=</span> handlers.<span style="color:#a6e22e">length</span>) {
+</span></span><span style="display:flex"><span>      <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> IllegalArgumentException(<span style="color:#e6db74">"Argument count ("</span> <span style="color:#f92672">+</span> argumentCount
+</span></span><span style="display:flex"><span>          <span style="color:#f92672">+</span> <span style="color:#e6db74">") doesn't match expected count ("</span> <span style="color:#f92672">+</span> handlers.<span style="color:#a6e22e">length</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">")"</span>);
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> p <span style="color:#f92672">=</span> 0; p <span style="color:#f92672">&lt;</span> argumentCount; p<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex"><span>      handlers<span style="color:#f92672">[</span>p<span style="color:#f92672">]</span>.<span style="color:#a6e22e">apply</span>(requestBuilder, args<span style="color:#f92672">[</span>p<span style="color:#f92672">]</span>);
+</span></span><span style="display:flex"><span>    }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">return</span> requestBuilder.<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex"><span>  }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>  <span style="color:#75715e">/** Builds a method return value from an HTTP response body. */</span>
+</span></span><span style="display:flex"><span>  R <span style="color:#a6e22e">toResponse</span>(ResponseBody body) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">return</span> responseConverter.<span style="color:#a6e22e">convert</span>(body);
+</span></span><span style="display:flex"><span>  }
+</span></span></code></pre></div><p>一个是用了刚才 ParameterHandler 抓到的元信息去构造 Request，另外一个就是把 Response 用对应的 Converter 去解析成想要的类型。</p><h3 id="enqueue">enqueue</h3><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">enqueue</span>(<span style="color:#66d9ef">final</span> Callback<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> callback) {
+</span></span><span style="display:flex"><span>        checkNotNull(callback, <span style="color:#e6db74">"callback == null"</span>);
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        okhttp3.<span style="color:#a6e22e">Call</span> call;
+</span></span><span style="display:flex"><span>        Throwable failure;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">synchronized</span> (<span style="color:#66d9ef">this</span>) {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">if</span> (executed) <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> IllegalStateException(<span style="color:#e6db74">"Already executed."</span>);
+</span></span><span style="display:flex"><span>            executed <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>            call <span style="color:#f92672">=</span> rawCall;
+</span></span><span style="display:flex"><span>            failure <span style="color:#f92672">=</span> creationFailure;
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">if</span> (call <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> failure <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex"><span>                    call <span style="color:#f92672">=</span> rawCall <span style="color:#f92672">=</span> createRawCall();
+</span></span><span style="display:flex"><span>                } <span style="color:#66d9ef">catch</span> (Throwable t) {
+</span></span><span style="display:flex"><span>                    failure <span style="color:#f92672">=</span> creationFailure <span style="color:#f92672">=</span> t;
+</span></span><span style="display:flex"><span>                }
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (failure <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex"><span>            callback.<span style="color:#a6e22e">onFailure</span>(<span style="color:#66d9ef">this</span>, failure);
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (canceled) {
+</span></span><span style="display:flex"><span>            call.<span style="color:#a6e22e">cancel</span>();
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        call.<span style="color:#a6e22e">enqueue</span>(<span style="color:#66d9ef">new</span> okhttp3.<span style="color:#a6e22e">Callback</span>() {
+</span></span><span style="display:flex"><span>            <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onResponse</span>(okhttp3.<span style="color:#a6e22e">Call</span> call, okhttp3.<span style="color:#a6e22e">Response</span> rawResponse)
+</span></span><span style="display:flex"><span>                    <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex"><span>                Response<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> response;
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex"><span>                    response <span style="color:#f92672">=</span> parseResponse(rawResponse);
+</span></span><span style="display:flex"><span>                } <span style="color:#66d9ef">catch</span> (Throwable e) {
+</span></span><span style="display:flex"><span>                    callFailure(e);
+</span></span><span style="display:flex"><span>                    <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex"><span>                }
+</span></span><span style="display:flex"><span>                callSuccess(response);
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>            <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onFailure</span>(okhttp3.<span style="color:#a6e22e">Call</span> call, IOException e) {
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex"><span>                    callback.<span style="color:#a6e22e">onFailure</span>(OkHttpCall.<span style="color:#a6e22e">this</span>, e);
+</span></span><span style="display:flex"><span>                } <span style="color:#66d9ef">catch</span> (Throwable t) {
+</span></span><span style="display:flex"><span>                    t.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex"><span>                }
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">callFailure</span>(Throwable e) {
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex"><span>                    callback.<span style="color:#a6e22e">onFailure</span>(OkHttpCall.<span style="color:#a6e22e">this</span>, e);
+</span></span><span style="display:flex"><span>                } <span style="color:#66d9ef">catch</span> (Throwable t) {
+</span></span><span style="display:flex"><span>                    t.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex"><span>                }
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">callSuccess</span>(Response<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> response) {
+</span></span><span style="display:flex"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex"><span>                    callback.<span style="color:#a6e22e">onResponse</span>(OkHttpCall.<span style="color:#a6e22e">this</span>, response);
+</span></span><span style="display:flex"><span>                } <span style="color:#66d9ef">catch</span> (Throwable t) {
+</span></span><span style="display:flex"><span>                    t.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex"><span>                }
+</span></span><span style="display:flex"><span>            }
+</span></span><span style="display:flex"><span>        });
+</span></span><span style="display:flex"><span>    }
+</span></span></code></pre></div><p>相应的 <code>enqueue</code> 方法也是在一堆的 check 之后，直接使用了 OkHttp 的异步 enqueue 去请求。</p><h3 id="再看-calladapter">再看 CallAdapter</h3><p>CallAdapter 刚才我们已经看了它的默认的实现，将 <code>Call&lt;R&gt;</code> 类型，转换为 <code>T</code> ，当然这里默认的实现里面 这个 <code>T</code> 还是 <code>Call&lt;R&gt;</code> ，但是这是默认实现，retrofit 中提供了为数众多的 adapters ，比如针对 Rxjava 的 Adapter：</p><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4" tabindex="0"><code class="language-java" data-lang="java"><span style="display:flex"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex"><span>    <span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">adapt</span>(Call<span style="color:#f92672">&lt;</span>R<span style="color:#f92672">&gt;</span> call) {
+</span></span><span style="display:flex"><span>        Observable<span style="color:#f92672">&lt;</span>Response<span style="color:#f92672">&lt;</span>R<span style="color:#f92672">&gt;&gt;</span> responseObservable <span style="color:#f92672">=</span> isAsync
+</span></span><span style="display:flex"><span>                <span style="color:#f92672">?</span> <span style="color:#66d9ef">new</span> CallEnqueueObservable<span style="color:#f92672">&lt;&gt;</span>(call)
+</span></span><span style="display:flex"><span>                : <span style="color:#66d9ef">new</span> CallExecuteObservable<span style="color:#f92672">&lt;&gt;</span>(call);
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        Observable<span style="color:#f92672">&lt;?&gt;</span> observable;
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (isResult) {
+</span></span><span style="display:flex"><span>            observable <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ResultObservable<span style="color:#f92672">&lt;&gt;</span>(responseObservable);
+</span></span><span style="display:flex"><span>        } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (isBody) {
+</span></span><span style="display:flex"><span>            observable <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BodyObservable<span style="color:#f92672">&lt;&gt;</span>(responseObservable);
+</span></span><span style="display:flex"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex"><span>            observable <span style="color:#f92672">=</span> responseObservable;
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (scheduler <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex"><span>            observable <span style="color:#f92672">=</span> observable.<span style="color:#a6e22e">subscribeOn</span>(scheduler);
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (isFlowable) {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">return</span> observable.<span style="color:#a6e22e">toFlowable</span>(BackpressureStrategy.<span style="color:#a6e22e">LATEST</span>);
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (isSingle) {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">return</span> observable.<span style="color:#a6e22e">singleOrError</span>();
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (isMaybe) {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">return</span> observable.<span style="color:#a6e22e">singleElement</span>();
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">if</span> (isCompletable) {
+</span></span><span style="display:flex"><span>            <span style="color:#66d9ef">return</span> observable.<span style="color:#a6e22e">ignoreElements</span>();
+</span></span><span style="display:flex"><span>        }
+</span></span><span style="display:flex"><span>        <span style="color:#66d9ef">return</span> observable;
+</span></span><span style="display:flex"><span>    }
+</span></span></code></pre></div><p>就为我们提供了返回 Observable 对象的返回 Adapter。</p><h2 id="总结">总结</h2><p>至此我们就完成了对 Retrofit 的本体的分析，当然 Retrofit 还提供了非常多的 Adapter 和 Converter ，不过都是针对不同的请求类型进行的特化，这里就不一并分析了。Retrofit 本身的本体代码非常的少，但是能为我们提供这么 Restful 的 API 支持，不得不说确实有其过人之处。</p><p>阅读本文你学到了什么：</p><ul><li>Retrofit 源码的分析</li><li>通过动态代理为 API 提供统一操作的思路</li><li>使用注解提供元信息的请求框架的设计思路</li><li>使用 Factory 对整个架构留出扩充空间和解耦的思路</li></ul></div><p>Subscribe：<a href="https://blog.lfkdsk.org/index.xml" target="_blank">lfkdsk's Blog</a></p><div style="height:50px"></div><div class="post-comments"><div id="disqus_thread"></div><script>window.addEventListener("load",()=>{(function(){var e=document,t=e.createElement("script");t.src="https://lfkdsk.disqus.com/embed.js",t.setAttribute("data-timestamp",+new Date),(e.head||e.body).appendChild(t)})()})</script><noscript>Please enable JavaScript to view the
+<a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript></div></div></div></article><script src="/js/highlight.pack.js"></script><script src="https://unpkg.com/quicklink@0.1.1/dist/quicklink.umd.js"></script><script>hljs.initHighlightingOnLoad();var posts=document.getElementById("posts-list");posts&&quicklink({el:posts,priority:!0})</script></body></html>
